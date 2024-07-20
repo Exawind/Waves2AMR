@@ -21,9 +21,28 @@ fftw_complex *modes_hosgrid::allocate_complex(const int n0, const int n1) {
   return a_ptr;
 }
 
-fftw_plan modes_hosgrid::plan_ifftw(const int n0, const int n1,
-                                    fftw_complex *in) {
-  unsigned int flag = FFTW_PATIENT;
+fftw_plan
+modes_hosgrid::plan_ifftw(const int n0, const int n1, fftw_complex *in,
+                          const planner_flags wisdom = planner_flags::patient) {
+  unsigned int flag;
+  switch (wisdom) {
+  case planner_flags::estimate:
+    flag = FFTW_ESTIMATE;
+    break;
+  case planner_flags::patient:
+    flag = FFTW_PATIENT;
+    break;
+  case planner_flags::exhaustive:
+    flag = FFTW_EXHAUSTIVE;
+    break;
+  case planner_flags::measure:
+    flag = FFTW_MEASURE;
+    break;
+  default:
+    std::cout << "ABORT: Planner flag supplied to modes_hosgrid::plan_ifftw is "
+                 "invalid or unsupported.\n";
+    std::exit(1);
+  }
   // Output array is used for planning (except for FFTW_ESTIMATE)
   double out[n0][n1];
   // Make and return plan
