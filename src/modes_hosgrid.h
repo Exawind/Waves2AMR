@@ -6,12 +6,15 @@
 
 namespace modes_hosgrid {
 
+enum struct planner_flags { estimate, patient, exhaustive, measure };
+
 void copy_complex(const int n0, const int n1,
                   std::vector<std::complex<double>> complex_vector,
                   fftw_complex *ptr);
 fftw_complex *allocate_complex(const int n0, const int n1);
 
-fftw_plan plan_ifftw(const int n0, const int n1, fftw_complex *in);
+fftw_plan plan_ifftw(const int n0, const int n1, fftw_complex *in,
+                     const planner_flags wisdom);
 
 fftw_complex *
 allocate_plan_copy(const int n0, const int n1, fftw_plan &p,
