@@ -244,18 +244,18 @@ void modes_hosgrid::populate_hos_vel_nondim(
   }
   // Output pointer
   const int xy_size = n0 * n1;
-  auto out = new double[xy_size];
+  amrex::Vector<amrex::Real> out(xy_size, 0.0);
   // Perform inverse fft
-  do_ifftw(n0, n1, p, x_modes, &out[0]);
+  do_ifftw(n0, n1, p, x_modes, out.data());
   // Copy to output vectors
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + xy_size,
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    &HOS_u[indv_start]);
   // Repeat in other directions
-  do_ifftw(n0, n1, p, y_modes, &out[0]);
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + xy_size,
+  do_ifftw(n0, n1, p, y_modes, out.data());
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    &HOS_v[indv_start]);
-  do_ifftw(n0, n1, p, z_modes, &out[0]);
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + xy_size,
+  do_ifftw(n0, n1, p, z_modes, out.data());
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    &HOS_w[indv_start]);
 }
 
