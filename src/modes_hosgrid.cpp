@@ -13,12 +13,10 @@ void modes_hosgrid::copy_complex(
     }
   }
 }
-
-fftw_complex *modes_hosgrid::allocate_complex(const int n0, const int n1) {
+ 
+amrex::Vector<fftw_complex> modes_hosgrid::allocate_complex(const int n0, const int n1) {
   // Allocate data needed for modes and create pointer
-  fftw_complex *a_ptr = new fftw_complex[n0 * (n1 / 2 + 1)];
-  // Return pointer to fftw_complex data
-  return a_ptr;
+  return amrex::Vector<fftw_complex>(n0 * (n1 / 2 + 1));
 }
 
 fftw_plan
@@ -49,28 +47,28 @@ modes_hosgrid::plan_ifftw(const int n0, const int n1, fftw_complex *in,
   return fftw_plan_dft_c2r_2d(n0, n1, in, &out[0][0], flag);
 }
 
-fftw_complex *modes_hosgrid::allocate_plan_copy(
+amrex::Vector<fftw_complex> modes_hosgrid::allocate_plan_copy(
     const int n0, const int n1, fftw_plan &p,
     std::vector<std::complex<double>> complex_vector) {
   // Allocate and get pointer
-  auto a_ptr = allocate_complex(n0, n1);
+  auto a = allocate_complex(n0, n1);
   // Create plan before data is initialized
-  p = plan_ifftw(n0, n1, a_ptr);
+  p = plan_ifftw(n0, n1, a.data());
   // Copy mode data from input vector
-  copy_complex(n0, n1, complex_vector, a_ptr);
-  // Return pointer to fftw_complex data
-  return a_ptr;
+  copy_complex(n0, n1, complex_vector, a.data());
+  // fftw_complex data
+  return a;
 }
 
-fftw_complex *
+amrex::Vector<fftw_complex>
 modes_hosgrid::allocate_copy(const int n0, const int n1,
                              std::vector<std::complex<double>> complex_vector) {
   // Allocate and get pointer
-  auto a_ptr = allocate_complex(n0, n1);
+  auto a = allocate_complex(n0, n1);
   // Copy mode data from input vector
-  copy_complex(n0, n1, complex_vector, a_ptr);
+  copy_complex(n0, n1, complex_vector, a.data());
   // Return pointer to fftw_complex data
-  return a_ptr;
+  return a;
 }
 
 void modes_hosgrid::populate_hos_eta(
@@ -98,12 +96,12 @@ void modes_hosgrid::populate_hos_eta_nondim(
     const int n0, const int n1, fftw_plan p, fftw_complex *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
   // Local array for output data
-  double out[n0 * n1];
+  amrex::Vector<double> out(n0 * n1, 0.0);
   // Perform complex-to-real (inverse) FFT
-  do_ifftw(n0, n1, p, eta_modes, &out[0]);
+  do_ifftw(n0, n1, p, eta_modes, out.data());
 
   // Copy data to output vector
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + HOS_eta.size(),
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    HOS_eta.begin());
 
   // !! -- This function MODIFIES the modes -- !! //
@@ -244,18 +242,18 @@ void modes_hosgrid::populate_hos_vel_nondim(
   }
   // Output pointer
   const int xy_size = n0 * n1;
-  auto out = new double[xy_size];
+  amrex::Vector<amrex::Real> out(xy_size, 0.0);
   // Perform inverse fft
-  do_ifftw(n0, n1, p, x_modes, &out[0]);
+  do_ifftw(n0, n1, p, x_modes, out.data());
   // Copy to output vectors
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + xy_size,
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    &HOS_u[indv_start]);
   // Repeat in other directions
-  do_ifftw(n0, n1, p, y_modes, &out[0]);
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + xy_size,
+  do_ifftw(n0, n1, p, y_modes, out.data());
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    &HOS_v[indv_start]);
-  do_ifftw(n0, n1, p, z_modes, &out[0]);
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + xy_size,
+  do_ifftw(n0, n1, p, z_modes, out.data());
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
                    &HOS_w[indv_start]);
 }
 
