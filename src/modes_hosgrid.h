@@ -11,16 +11,16 @@ enum struct planner_flags { estimate, patient, exhaustive, measure };
 void copy_complex(const int n0, const int n1,
                   std::vector<std::complex<double>> complex_vector,
                   fftw_complex *ptr);
-amrex::Vector<fftw_complex> allocate_complex(const int n0, const int n1);
+fftw_complex *allocate_complex(const int n0, const int n1);
 
 fftw_plan plan_ifftw(const int n0, const int n1, fftw_complex *in,
                      const planner_flags wisdom);
 
-amrex::Vector<fftw_complex>
+fftw_complex *
 allocate_plan_copy(const int n0, const int n1, fftw_plan &p,
                    std::vector<std::complex<double>> complex_vector);
 
-amrex::Vector<fftw_complex> allocate_copy(const int n0, const int n1,
+fftw_complex *allocate_copy(const int n0, const int n1,
                             std::vector<std::complex<double>> complex_vector);
 
 void populate_hos_eta(ReadModes rm_obj, fftw_plan p, fftw_complex *eta_modes,
