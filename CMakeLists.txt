@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.20)
 
 project( Waves2AMR
     LANGUAGES C CXX
@@ -49,12 +49,6 @@ endif ()
 # Enable CUDA if requested
 #
 if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
-   # CMake 3.18+: CMAKE_CUDA_ARCHITECTURES
-   # https://cmake.org/cmake/help/latest/policy/CMP0104.html
-   if(POLICY CMP0104)
-      cmake_policy(SET CMP0104 OLD)
-   endif()
-   include(AMReX_SetupCUDA)
    include(AMReXTargetHelpers)
 endif ()
 
