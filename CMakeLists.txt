@@ -32,8 +32,9 @@ set(w2a_test_name "${w2a_base}_test")
 set(w2a_utests_name "${w2a_base}_unit_tests")
 
 # FFTW
-set(fftw_lib ${CMAKE_CURRENT_SOURCE_DIR}/fftw/lib/libfftw3.a)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fftw/include/)
+# set(FFTW_DIR /usr/local)
+include_directories(${FFTW_DIR}/include/)
+set(fftw_lib ${FFTW_DIR}/lib/libfftw3.a)
 
 # Access source files
 FILE(GLOB cppsrc ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
