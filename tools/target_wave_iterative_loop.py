@@ -1,4 +1,5 @@
 import subprocess
+import os, sys
 import numpy as np
 import pandas as pd
 import math
@@ -14,46 +15,45 @@ tol = 1.0
 make_directories = True
 update_inputs = False
 if (make_directories):
-    subprocess.run("mkdir init_irregular")
-    subprocess.run("mkdir phase_shift0")
-    subprocess.run("mkdir phase_shift1")
-    subprocess.run("mkdir phase_shift2")
-    subprocess.run("mkdir phase_shift3")
-    subprocess.run("mkdir no_decomp")
+    os.makedirs("init_irregular")
+    os.makedirs("phase_shift0")
+    os.makedirs("phase_shift1")
+    os.makedirs("phase_shift2")
+    os.makedirs("phase_shift3")
+    os.makedirs("no_decomp")
 if (make_directories or update_inputs):
-    subprocess.run("cp case4_HOS-NWT.inp init_irregular")
-    subprocess.run("cp probe_2.inp init_irregular")
-    subprocess.run("cp case3_HOS-NWT.inp init_phase_shift0")
-    subprocess.run("cp wavemaker.cfg init_phase_shift0")
-    subprocess.run("cp probe_1.inp init_phase_shift0")
-    subprocess.run("cp case3_HOS-NWT.inp init_phase_shift1")
-    subprocess.run("cp wavemaker.cfg init_phase_shift1")
-    subprocess.run("cp probe_1.inp init_phase_shift1")
-    subprocess.run("cp case3_HOS-NWT.inp init_phase_shift2")
-    subprocess.run("cp wavemaker.cfg init_phase_shift2")
-    subprocess.run("cp probe_1.inp init_phase_shift2")
-    subprocess.run("cp case3_HOS-NWT.inp init_phase_shift3")
-    subprocess.run("cp wavemaker.cfg init_phase_shift3")
-    subprocess.run("cp probe_1.inp init_phase_shift3")
-    subprocess.run("cp case3_HOS-NWT.inp no_decomp")
-    subprocess.run("cp wavemaker.cfg no_decomp")
-    subprocess.run("cp probe_1.inp no_decomp")
+    subprocess.call("cp case4_HOS-NWT.inp ./init_irregular",shell=True)
+    subprocess.call("cp probe_2.inp ./init_irregular",shell=True)
+    subprocess.call("cp case3_HOS-NWT.inp ./init_phase_shift0",shell=True)
+    subprocess.call("cp wavemaker.cfg ./init_phase_shift0",shell=True)
+    subprocess.call("cp probe_1.inp ./init_phase_shift0",shell=True)
+    subprocess.call("cp case3_HOS-NWT.inp ./init_phase_shift1",shell=True)
+    subprocess.call("cp wavemaker.cfg ./init_phase_shift1",shell=True)
+    subprocess.call("cp probe_1.inp ./init_phase_shift1",shell=True)
+    subprocess.call("cp case3_HOS-NWT.inp ./init_phase_shift2",shell=True)
+    subprocess.call("cp wavemaker.cfg ./init_phase_shift2",shell=True)
+    subprocess.call("cp probe_1.inp ./init_phase_shift2",shell=True)
+    subprocess.call("cp case3_HOS-NWT.inp ./init_phase_shift3",shell=True)
+    subprocess.call("cp wavemaker.cfg ./init_phase_shift3",shell=True)
+    subprocess.call("cp probe_1.inp ./init_phase_shift3",shell=True)
+    subprocess.call("cp case3_HOS-NWT.inp ./no_decomp",shell=True)
+    subprocess.call("cp wavemaker.cfg ./no_decomp",shell=True)
+    subprocess.call("cp probe_1.inp ./no_decomp",shell=True)
 
 # Do spectrum-based simulation as initial guess for loop
-subprocess.run("cd init_irregular")
-subprocess.run(exe + " case4_HOS-NWT.inp")
+os.chdir("init_irregular")
+subprocess.run(exe + " case4_HOS-NWT.inp",shell=True)
 
 # Read in the probe file (has 2)
 nheader_probfile = 1
 nprobes_probfile = 2
 t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, nheader_probfile, nprobes_probfile)
-#t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, 1, 2)
 
 # Convert to spectra
 s_init_in = convert_to_spectrum(t_init_irr, elev_init_irr[:,0])
 s_init_out = convert_to_spectrum(t_init_irr, elev_init_irr[:,1])
 
-# Matteo
+# Compute dt of simulations
 dt = t_init_irr[1] - t_init_irr[0]
 length_of_signal = len(t_init_irr)
 
@@ -62,12 +62,9 @@ modelscale_time = np.sqrt(50)
 nheader_experiment = 0
 nprobes_experiment= 1
 t_exp, elev_exp = read_elev("../" + ref_data, tskip * modelscale_time, nheader_experiment, nprobes_experiment)
-#t_exp, elev_exp = read_elev("../" + ref_data, tskip * np.sqrt(50.), 0, 1)
-#t_exp /= np.sqrt(50.)
 t_exp /= modelscale_time
 modelscale_length = 50.
 elev_exp /= modelscale_length
-#elev_exp /= 50.
 
 # Get target spectrum from experiment
 s_exp = convert_to_spectrum(t_exp, elev_exp)
@@ -85,7 +82,7 @@ while (n < n_4waves_max and err > tol):
     # Loop over phase shifts
     for i in range(4):
         # Move to directory
-        subprocess.run("cd ../phase_shift" + str(i))
+        os.chdir("../phase_shift"+ str(i))
 
         # Add phase shift and write to file
         # pass also a time array to get frequency info
@@ -93,14 +90,14 @@ while (n < n_4waves_max and err > tol):
         write_input_spectrum(s_in, i, dt, length_of_signal)
 
         # Run the HOS-NWT simulation
-        subprocess.run(exe + " case3_HOS-NWT.inp")
+        subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
 
         # Read in the probe file
         t_probe, elev_probe = read_elev("Results/probes.dat", tskip, 1, 1)
 
         # Rename probe and wavemaker files to avoid overwriting
-        subprocess.run("mv Results/probes.dat Results/probes" + str(n) + ".dat")
-        subprocess.run("mv wavemaker.dat wavemaker" + str(n) + ".dat")
+        subprocess.call("mv Results/probes.dat Results/probes" + str(n) + ".dat",shell=True)
+        subprocess.call("mv wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
 
         # If phase shift = 0, compare time series to target
         if (i == 0):
@@ -139,17 +136,18 @@ while (n < n_1wave_max and err > tol):
     n += 1
 
     # Write latest input spectrum to file
-    write_input_spectrum(s_in, 0)
+    #write_input_spectrum(s_in, 0)
+    write_input_spectrum(s_in, 0, dt, length_of_signal)
 
     # Run the HOS-NWT simulation
-    subprocess.run(exe + " case3_HOS-NWT.inp")
+    subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
 
     # Read in the probe file
     t_probe, elev_probe = read_elev("Results/probes.dat", tskip, 1, 1)
 
     # Rename probe file and wavemaker file to avoid overwriting
-    subprocess.run("mv Results/probes.dat Results/probes" + str(n) + ".dat")
-    subprocess.run("mv wavemaker.dat wavemaker" + str(n) + ".dat")
+    subprocess.call("mv Results/probes.dat Results/probes" + str(n) + ".dat",shell=True)
+    subprocess.call("mv wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
 
     # Compare time series
     wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, eleve_probe)
@@ -167,5 +165,6 @@ while (n < n_1wave_max and err > tol):
     print("Iteration " + str(n) + " | Error = " + str(err))
 
 # Print final input spectra
-write_input_spectrum(s_in, 0)
+#write_input_spectrum(s_in, 0)
+write_input_spectrum(s_in, 0, dt, length_of_signal)
 
