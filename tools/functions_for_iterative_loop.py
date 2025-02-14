@@ -5,16 +5,14 @@ def read_elev(fname,time_skip,nheader,nprobes):
     """
     Extract spatio-temporal data from file
     """
-    spatiotemporal_data = np.loadtxt(fname, skiprows=nheader)
-    # convert to array to be able to manipulate it more easily
-    spatiotemporal_data = np.array(spatiotemporal_data)
     # take out the nheader row(s)
-    #spatiotemporal_data = spatiotemporal_data[nheader:,:]
+    spatiotemporal_data = np.loadtxt(fname, skiprows=nheader)
+    # convert to array for data manipulation purposes
+    spatiotemporal_data = np.array(spatiotemporal_data)
     # take out transiet time part
-    spatiotemporal_data = spatiotemporal_data[time_skip:,:]
-    # from first column you get dt (time[1]-time[0])
-    # and then time_skip is in seconds
-    # and so you get the index of the first element that you want
+    dt = spatiotemporal_data[1,0] - spatiotemporal_data[0,0]
+    ntimesteps_skip = int(time_skip/dt)
+    spatiotemporal_data = spatiotemporal_data[(ntimesteps_skip+1):,:]
     # separate time and space data
     time = spatiotemporal_data[:,0]
     elevation = spatiotemporal_data[:,1:nprobes]
