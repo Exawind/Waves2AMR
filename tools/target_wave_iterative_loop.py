@@ -12,27 +12,29 @@ n_1wave_max = 1
 tol = 1.0
 
 make_directories = True
+update_inputs = False
 if (make_directories):
     subprocess.run("mkdir init_irregular")
+    subprocess.run("mkdir phase_shift0")
+    subprocess.run("mkdir phase_shift1")
+    subprocess.run("mkdir phase_shift2")
+    subprocess.run("mkdir phase_shift3")
+    subprocess.run("mkdir no_decomp")
+if (make_directories or update_inputs):
     subprocess.run("cp case4_HOS-NWT.inp init_irregular")
     subprocess.run("cp probe_2.inp init_irregular")
-    subprocess.run("mkdir phase_shift0")
     subprocess.run("cp case3_HOS-NWT.inp init_phase_shift0")
     subprocess.run("cp wavemaker.cfg init_phase_shift0")
     subprocess.run("cp probe_1.inp init_phase_shift0")
-    subprocess.run("mkdir phase_shift1")
     subprocess.run("cp case3_HOS-NWT.inp init_phase_shift1")
     subprocess.run("cp wavemaker.cfg init_phase_shift1")
     subprocess.run("cp probe_1.inp init_phase_shift1")
-    subprocess.run("mkdir phase_shift2")
     subprocess.run("cp case3_HOS-NWT.inp init_phase_shift2")
     subprocess.run("cp wavemaker.cfg init_phase_shift2")
     subprocess.run("cp probe_1.inp init_phase_shift2")
-    subprocess.run("mkdir phase_shift3")
     subprocess.run("cp case3_HOS-NWT.inp init_phase_shift3")
     subprocess.run("cp wavemaker.cfg init_phase_shift3")
     subprocess.run("cp probe_1.inp init_phase_shift3")
-    subprocess.run("mkdir no_decomp")
     subprocess.run("cp case3_HOS-NWT.inp no_decomp")
     subprocess.run("cp wavemaker.cfg no_decomp")
     subprocess.run("cp probe_1.inp no_decomp")
