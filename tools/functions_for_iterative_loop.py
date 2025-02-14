@@ -81,8 +81,8 @@ def write_input_spectrum(s_input, i_shift, dt, length_of_signal):
     angle = 0.0
     with open("wavemaker.dat","w") as wave_maker:
         for ifreq in range(nf): # in nf
-            line = '%d'%ifreq+',%.3f'%flist[ifreq]+',%.3f'%amplitudelist[ifreq]
-            line += ',%.2f'%angle+',%.2f'%phaselist[ifreq]
+            line = '%d'%ifreq+',%.5e'%flist[ifreq]+',%.5e'%amplitudelist[ifreq]
+            line += ',%.5e'%angle+',%.5e'%phaselist[ifreq]
             wave_maker.write(line+'\n') 
 
 
