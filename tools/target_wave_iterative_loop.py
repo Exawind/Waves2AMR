@@ -6,7 +6,7 @@ import functions_for_iterative_loop
 
 exe = "~/HOS-NWT/bin/HOS-NWT"
 ref_data = "IrregularWave.Elev"
-t_skip = 50
+t_skip = 50. # seconds
 n_4waves_max = 2
 n_1wave_max = 1
 tol = 1.0
@@ -36,16 +36,30 @@ subprocess.run("cd init_irregular")
 subprocess.run(exe + " case4_HOS-NWT.inp")
 
 # Read in the probe file (has 2)
-t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, 1, 2)
+nheader_probfile = 1
+nprobes_probfile = 2
+t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, nheader_probfile, nprobes_probfile)
+#t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, 1, 2)
 
 # Convert to spectra
 s_init_in = convert_to_spectrum(t_init_irr, elev_init_irr[:,0])
 s_init_out = convert_to_spectrum(t_init_irr, elev_init_irr[:,1])
 
+# Matteo
+dt = t_init_irr[1] - t_init_irr[0]
+length_of_signal = len(t_init_irr)
+
 # Read in target time series from experiment and scale
-t_exp, elev_exp = read_elev("../" + ref_data, tskip * np.sqrt(50.), 0, 1)
-t_exp /= np.sqrt(50.)
-elev_exp /= 50.
+modelscale_time = np.sqrt(50)
+nheader_experiment = 0
+nprobes_experiment= 1
+t_exp, elev_exp = read_elev("../" + ref_data, tskip * modelscale_time, nheader_experiment, nprobes_experiment)
+#t_exp, elev_exp = read_elev("../" + ref_data, tskip * np.sqrt(50.), 0, 1)
+#t_exp /= np.sqrt(50.)
+t_exp /= modelscale_time
+modelscale_length = 50.
+elev_exp /= modelscale_length
+#elev_exp /= 50.
 
 # Get target spectrum from experiment
 s_exp = convert_to_spectrum(t_exp, elev_exp)
@@ -66,7 +80,9 @@ while (n < n_4waves_max and err > tol):
         subprocess.run("cd ../phase_shift" + str(i))
 
         # Add phase shift and write to file
-        write_input_spectrum(s_in, i)
+        # pass also a time array to get frequency info
+        # write_input_spectrum(s_in, i)
+        write_input_spectrum(s_in, i, dt, length_of_signal)
 
         # Run the HOS-NWT simulation
         subprocess.run(exe + " case3_HOS-NWT.inp")
