@@ -89,7 +89,7 @@ while (n < n_4waves_max and err > tol):
         # Add phase shift and write to file
         # pass also a time array to get frequency info
         # write_input_spectrum(s_in, i)
-        write_input_spectrum(s_in, i, dt, length_of_signal)
+        write_input_spectrum(s_in, i, length_of_signal)
 
         # Run the HOS-NWT simulation
         subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
@@ -139,7 +139,7 @@ while (n < n_1wave_max and err > tol):
 
     # Write latest input spectrum to file
     #write_input_spectrum(s_in, 0)
-    write_input_spectrum(s_in, 0, dt, length_of_signal)
+    write_input_spectrum(s_in, 0, length_of_signal)
 
     # Run the HOS-NWT simulation
     subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)

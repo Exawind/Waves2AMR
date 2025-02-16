@@ -56,7 +56,7 @@ def get_input_spectrum(s_input, s_output, s_target):
 
 # pass a time array and get a frequency resolution from there so that we can get the column of frequencies in the file
 # and the index / high frequency
-def write_input_spectrum(s_input, i_shift, dt, length_of_signal):
+def write_input_spectrum(s_input, i_shift, length_of_signal):
     # Write to wavemaker.dat
     # need to think about the format a bit more, but here is the idea
     s = np.zeros(s_input.shape)
@@ -72,13 +72,12 @@ def write_input_spectrum(s_input, i_shift, dt, length_of_signal):
     
     # and here we write s to the file
     # are we writing n_harmo, frequency, amplitude, angle and phase?
-    df = 1./dt
-    flist = np.linspace(0.,length_of_signal,df)
-    nf = len(flist)
+    flist = np.fft.fftfreq(length_of_signal) 
+    nf = int(len(flist)/2.) # only half the frequencies matter
     amplitudelist = np.abs(s)
     phaselist = np.angle(s)
     angle = 0.0
-    with open("wavemaker.dat","w") as wave_maker:
+    with open("wavemaker.dat",'w+') as wave_maker:
         for ifreq in range(nf): # in nf
             line = '%d'%ifreq+',%.5e'%flist[ifreq]+',%.5e'%amplitudelist[ifreq]
             line += ',%.5e'%angle+',%.5e'%phaselist[ifreq]
