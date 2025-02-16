@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def read_elev(fname,time_skip,nheader,nprobes):
 
@@ -6,16 +7,16 @@ def read_elev(fname,time_skip,nheader,nprobes):
     Extract spatio-temporal data from file
     """
     # take out the nheader row(s)
-    spatiotemporal_data = np.loadtxt(fname, skiprows=nheader)
+    spatiotemporal_data = pd.read_csv(fname,skiprows=nheader,sep='\s+')
     # convert to array for data manipulation purposes
-    spatiotemporal_data = np.array(spatiotemporal_data)
+    spatiotemporal_data = spatiotemporal_data.to_numpy()
     # take out transiet time part
-    dt = spatiotemporal_data[1,0] - spatiotemporal_data[0,0]
+    dt = float(spatiotemporal_data[1,0]) - float(spatiotemporal_data[0,0])
     ntimesteps_skip = int(time_skip/dt)
     spatiotemporal_data = spatiotemporal_data[(ntimesteps_skip+1):,:]
     # separate time and space data
     time = spatiotemporal_data[:,0]
-    elevation = spatiotemporal_data[:,1:nprobes]
+    elevation = spatiotemporal_data[:,1:nprobes+1]
 
     return time, elevation
 
@@ -26,7 +27,7 @@ def convert_to_spectrum(time, elevation):
     to convert spatial-temporal data
     to frequency data
     """
-    spectrum = np.fft.fft(elevation,len(time))
+    spectrum = np.fft.fft(elevation)
     spectrum = 2.*spectrum/len(time) # normalizing by the length of the signal
     spectrum[0] = spectrum[0]/2.
     # take only positive frequencies (first half of the signal, since the rest will be complex conjugates of the others)
@@ -36,7 +37,7 @@ def convert_to_spectrum(time, elevation):
     # should not change much though
     spectrum = np.fft.fftshift(spectrum)
 
-    return spectrum
+    return spectrum.flatten()
 
 def get_input_spectrum(s_input, s_output, s_target):
 
@@ -51,7 +52,7 @@ def get_input_spectrum(s_input, s_output, s_target):
 
     s_input_new = a_input_new*np.exp(phase_input_new)
 
-    return s_input_new
+    return s_input_new.flatten()
 
 # pass a time array and get a frequency resolution from there so that we can get the column of frequencies in the file
 # and the index / high frequency
@@ -98,7 +99,7 @@ def measure_convergence(s, s_old):
 
     spectrum_norm = np.abs(s-s_old)
 
-    return spectrum_norm
+    return spectrum_norm.flatten()
 
 def generate_4wave_out_spectrum(s0, s1, s2, s3):
 
@@ -108,4 +109,4 @@ def generate_4wave_out_spectrum(s0, s1, s2, s3):
 
     s_out = a1z
 
-    return s_out
+    return s_out.flatten()

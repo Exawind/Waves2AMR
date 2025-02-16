@@ -3,11 +3,11 @@ import os, sys
 import numpy as np
 import pandas as pd
 import math
-import functions_for_iterative_loop
+from functions_for_iterative_loop import *
 
 exe = "~/HOS-NWT/bin/HOS-NWT"
 ref_data = "IrregularWave.Elev"
-t_skip = 50. # seconds
+tskip = 50. # seconds
 n_4waves_max = 2
 n_1wave_max = 1
 tol = 1.0
@@ -59,7 +59,7 @@ length_of_signal = len(t_init_irr)
 
 # Read in target time series from experiment and scale
 modelscale_time = np.sqrt(50)
-nheader_experiment = 0
+nheader_experiment = 1
 nprobes_experiment= 1
 t_exp, elev_exp = read_elev("../" + ref_data, tskip * modelscale_time, nheader_experiment, nprobes_experiment)
 t_exp /= modelscale_time
@@ -67,7 +67,9 @@ modelscale_length = 50.
 elev_exp /= modelscale_length
 
 # Get target spectrum from experiment
-s_exp = convert_to_spectrum(t_exp, elev_exp)
+#s_exp = convert_to_spectrum(t_exp, elev_exp)
+# To match size
+s_exp = convert_to_spectrum(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr))])
 
 # For first input spectrum for loops
 s_in = get_input_spectrum(s_init_in, s_init_out, s_exp)
