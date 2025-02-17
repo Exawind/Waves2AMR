@@ -89,16 +89,16 @@ def time_series_difference(t0, elev0, t1, elev1):
     # unclear to me why we are passing the time info
     # if we are comparing the whole thing in the end
 
-    elev_diff_norm = np.abs(elev0 - elev1)
+    elev_diff_norm = np.max(np.abs(elev0 - elev1))
 
     return elev_diff_norm
 
 def measure_convergence(s, s_old):
     # use also any norm that makes sense
 
-    spectrum_norm = np.abs(s-s_old)
+    spectrum_norm = np.max(np.abs(s-s_old))
 
-    return spectrum_norm.flatten()
+    return spectrum_norm
 
 def generate_4wave_out_spectrum(s0, s1, s2, s3):
 

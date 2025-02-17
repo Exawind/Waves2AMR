@@ -95,7 +95,10 @@ while (n < n_4waves_max and err > tol):
         subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
 
         # Read in the probe file
-        t_probe, elev_probe = read_elev("Results/probes.dat", tskip, 1, 1)
+        if n==1:
+            t_probe, elev_probe = read_elev("Results/probes.dat", tskip, nheader_probfile, 1)
+        else:
+            t_probe, elev_probe = read_elev("Results/probes" + str(n-1) + ".dat", tskip, nheader_probfile, 1)
 
         # Rename probe and wavemaker files to avoid overwriting
         subprocess.call("mv Results/probes.dat Results/probes" + str(n) + ".dat",shell=True)
@@ -103,7 +106,7 @@ while (n < n_4waves_max and err > tol):
 
         # If phase shift = 0, compare time series to target
         if (i == 0):
-            wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, eleve_probe)
+            wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, elev_probe)
             print("Time series norm: " + str(wave_elev_norm))
 
         # Convert to spectrum
@@ -128,7 +131,7 @@ while (n < n_4waves_max and err > tol):
     print("Iteration " + str(n) + " | Error = " + str(err))
 
 # Move to directory
-subprocess.run("cd ../no_decomp")
+os.chdir("../no_decomp")
 # Begin loop for single wave, no decomposition
 print("Begin loop for single wave, no decomposition")
 n = 0
@@ -145,14 +148,17 @@ while (n < n_1wave_max and err > tol):
     subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
 
     # Read in the probe file
-    t_probe, elev_probe = read_elev("Results/probes.dat", tskip, 1, 1)
+    if n==1:
+        t_probe, elev_probe = read_elev("Results/probes.dat", tskip, nheader_probfile, 1)
+    else:
+        t_probe, elev_probe = read_elev("Results/probes" + str(n-1) + ".dat", tskip, nheader_probfile, 1)
 
     # Rename probe file and wavemaker file to avoid overwriting
     subprocess.call("mv Results/probes.dat Results/probes" + str(n) + ".dat",shell=True)
     subprocess.call("mv wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
 
     # Compare time series
-    wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, eleve_probe)
+    wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, elev_probe)
     print("Time series norm: " + str(wave_elev_norm))
 
     # Convert to spectrum
@@ -168,5 +174,5 @@ while (n < n_1wave_max and err > tol):
 
 # Print final input spectra
 #write_input_spectrum(s_in, 0)
-write_input_spectrum(s_in, 0, dt, length_of_signal)
+write_input_spectrum(s_in, 0, length_of_signal)
 
