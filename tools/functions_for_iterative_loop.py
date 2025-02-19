@@ -35,7 +35,7 @@ def convert_to_spectrum(time, elevation):
 
     # we might need to fftshift to bring 0 frequency to the center of the signal
     # should not change much though
-    spectrum = np.fft.fftshift(spectrum)
+    # spectrum = np.fft.fftshift(spectrum) # taking it out to avoid possible issues with frequency order in wave_maker.dat file
 
     return spectrum.flatten()
 
@@ -71,8 +71,10 @@ def write_input_spectrum(s_input, i_shift, length_of_signal):
         s = 1.5*np.pi*s_input #s3
     
     # and here we write s to the file
-    # are we writing n_harmo, frequency, amplitude, angle and phase?
-    flist = np.fft.fftfreq(length_of_signal) 
+    # we writing n_harmo, frequency, amplitude, angle and phase
+    frequencies = np.fft.fftfreq(length_of_signal)
+    df = 38./(2.**16) # hard-coded for now. Correct way is to parse it from .cgf file
+    flist = np.arange(0.,max(frequencies),df) # sampling rate to match HOS-NWT definition df = clock/(2^rnum)
     nf = int(len(flist)/2.) # only half the frequencies matter
     amplitudelist = np.abs(s)
     phaselist = np.angle(s)
