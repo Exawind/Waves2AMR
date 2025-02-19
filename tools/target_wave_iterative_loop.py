@@ -45,7 +45,7 @@ os.chdir("init_irregular")
 subprocess.run(exe + " case4_HOS-NWT.inp",shell=True)
 
 # Read in the probe file (has 2)
-nheader_probfile = 1
+nheader_probfile = 47
 nprobes_probfile = 2
 t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, nheader_probfile, nprobes_probfile)
 
