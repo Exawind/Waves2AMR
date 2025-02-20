@@ -50,7 +50,7 @@ def get_input_spectrum(s_input, s_output, s_target):
     # Subtract for phases
     phase_input_new = np.angle(s_input) + (np.angle(s_target)-np.angle(s_output))
 
-    s_input_new = a_input_new*np.exp(phase_input_new)
+    s_input_new = a_input_new*np.exp(1j*phase_input_new)
 
     return s_input_new.flatten()
 
@@ -61,20 +61,12 @@ def write_input_spectrum(s_input, i_shift, length_of_signal):
     # need to think about the format a bit more, but here is the idea
     s = np.zeros(s_input.shape)
 
-    if i_shift==0:
-        s = s_input #s0
-    elif i_shift==1:
-        s = 0.5*np.pi*s_input #s1
-    elif i_shift==2:
-        s = np.pi*s_input #s2
-    else:
-        s = 1.5*np.pi*s_input #s3
+    s = s_input*np.exp(1j*0.5*np.pi*i_shift)
     
     # and here we write s to the file
-    # we writing n_harmo, frequency, amplitude, angle and phase
     frequencies = np.fft.fftfreq(length_of_signal)
     df = 38./(2.**16) # hard-coded for now. Correct way is to parse it from .cgf file
-    flist = np.arange(0.,max(frequencies),df) # sampling rate to match HOS-NWT definition df = clock/(2^rnum)
+    flist = np.arange(0.,max(frequencies),df)
     nf = int(len(flist)/2.) # only half the frequencies matter
     amplitudelist = np.abs(s)
     phaselist = np.angle(s)
