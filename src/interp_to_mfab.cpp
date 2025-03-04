@@ -451,72 +451,12 @@ void interp_to_mfab::interp_eta_to_levelset_multifab(
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
 
-  // Get pointer to device vector
-  const auto *etavec_ptr = etavec.data();
-
-  for (amrex::MFIter mfi(lsfab); mfi.isValid(); ++mfi) {
-    auto bx = mfi.growntilebox();
-    amrex::Array4<amrex::Real> lsarr = lsfab.array(mfi);
-    amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-      // Location of cell
-      amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
-      amrex::Real yc = problo[1] + (j + 0.5) * dx[1];
-      const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
-      // HOS data assumed to be periodic in x and y
-      const amrex::Real spd_Lx = spd_nx * spd_dx;
-      const amrex::Real spd_Ly = spd_ny * spd_dy;
-      xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
-      xc = ((xc < 0.) ? xc + spd_Lx : xc);
-      yc = ((yc > spd_Ly) ? yc - spd_Ly : yc);
-      yc = ((yc < 0.) ? yc + spd_Ly : yc);
-      // Initial positions and indices of HOS spatial data vectors
-      int i0 = xc / spd_dx;
-      int j0 = yc / spd_dy;
-      int i1 = i0 + 1, j1 = j0 + 1;
-      amrex::Real x0 = spd_dx * i0, x1 = spd_dx * i1;
-      amrex::Real y0 = spd_dy * j0, y1 = spd_dy * j1;
-      // Should there be an offset?
-      // Get surrounding indices (go forward, go backward)
-      while (i0 < spd_nx - 2 && x0 - spd_dx < xc) {
-        ++i0;
-        x0 = spd_dx * i0;
-      }
-      while ((i0 > 0 && x0 > xc) || i0 >= spd_nx) {
-        --i0;
-        x0 = spd_dx * i0;
-      }
-      while (j0 < spd_ny - 2 && y0 - spd_dy < yc) {
-        ++j0;
-        y0 = spd_dy * j0;
-      }
-      while ((j0 > 0 && y0 > yc) || j0 >= spd_ny) {
-        --j0;
-        y0 = spd_dy * j0;
-      }
-      // Get points above
-      i1 = i0 + 1;
-      x1 = spd_dx * i1;
-      j1 = j0 + 1;
-      y1 = spd_dy * j1;
-      // Periodicity for indices
-      i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
-      j1 = (j1 >= spd_ny) ? j1 - spd_ny : j1;
-      // Form indices for 1D vector of 2D data
-      // Row-major is a consequence of performing 2D FFT in C++
-      const int idx00 = i0 + j0 * spd_nx;
-      const int idx10 = i1 + j0 * spd_nx;
-      const int idx01 = i0 + j1 * spd_nx;
-      const int idx11 = i1 + j1 * spd_nx;
-      // Get surrounding data
-      const amrex::Real e00 = etavec_ptr[idx00];
-      const amrex::Real e10 = etavec_ptr[idx10];
-      const amrex::Real e01 = etavec_ptr[idx01];
-      const amrex::Real e11 = etavec_ptr[idx11];
-      // Interpolate eta and calculate levelset
-      lsarr(i, j, k) =
-          linear_interp2D(e00, e10, e01, e11, xc, yc, x0, y0, x1, y1) + zsl -
-          zc;
-    });
+  if (spd_ny == 1) {
+    interp_to_mfab::interp_eta_to_levelset_multifab_2d(
+        spd_nx, spd_dx, zsl, etavec, lsfab, problo, dx);
+  } else {
+    interp_to_mfab::interp_eta_to_levelset_multifab_3d(
+        spd_nx, spd_ny, spd_dx, spd_dy, zsl, etavec, lsfab, problo, dx);
   }
 }
 
@@ -748,14 +688,14 @@ void interp_to_mfab::interp_velocity_to_multifab_3d(
       const amrex::Real w111 = wvec_ptr[idx111];
       // Interpolate and store
       varr(i, j, k, 0) =
-          linear_interp(u000, u100, u010, u001, u110, u101, u011, u111, xc,
-                           yc, zc, x0, y0, z0, x1, y1, z1);
+          linear_interp(u000, u100, u010, u001, u110, u101, u011, u111, xc, yc,
+                        zc, x0, y0, z0, x1, y1, z1);
       varr(i, j, k, 1) =
-          linear_interp(v000, v100, v010, v001, v110, v101, v011, v111, xc,
-                           yc, zc, x0, y0, z0, x1, y1, z1);
+          linear_interp(v000, v100, v010, v001, v110, v101, v011, v111, xc, yc,
+                        zc, x0, y0, z0, x1, y1, z1);
       varr(i, j, k, 2) =
-          linear_interp(w000, w100, w010, w001, w110, w101, w011, w111, xc,
-                           yc, zc, x0, y0, z0, x1, y1, z1);
+          linear_interp(w000, w100, w010, w001, w110, w101, w011, w111, xc, yc,
+                        zc, x0, y0, z0, x1, y1, z1);
 
       // If lower edge of cell is above highest points from hos spatial
       // data, populate velocity with zeros
@@ -950,10 +890,10 @@ AMREX_GPU_HOST_DEVICE amrex::Real interp_to_mfab::linear_interp(
 
 AMREX_GPU_HOST_DEVICE amrex::Real
 interp_to_mfab::linear_interp2D(const amrex::Real a00, const amrex::Real a10,
-                                 const amrex::Real a01, const amrex::Real a11,
-                                 const amrex::Real xc, const amrex::Real yc,
-                                 const amrex::Real x0, const amrex::Real y0,
-                                 const amrex::Real x1, const amrex::Real y1) {
+                                const amrex::Real a01, const amrex::Real a11,
+                                const amrex::Real xc, const amrex::Real yc,
+                                const amrex::Real x0, const amrex::Real y0,
+                                const amrex::Real x1, const amrex::Real y1) {
 
   // Interpolation weights in each direction (linear basis)
   const amrex::Real wx_hi = (xc - x0) / (x1 - x0);
@@ -968,8 +908,8 @@ interp_to_mfab::linear_interp2D(const amrex::Real a00, const amrex::Real a10,
 
 AMREX_GPU_HOST_DEVICE amrex::Real
 interp_to_mfab::linear_interp1D(const amrex::Real a0, const amrex::Real a1,
-                                 const amrex::Real xc, const amrex::Real x0,
-                                 const amrex::Real x1) {
+                                const amrex::Real xc, const amrex::Real x0,
+                                const amrex::Real x1) {
 
   // Interpolation weights in each direction (linear basis)
   const amrex::Real wx_hi = (xc - x0) / (x1 - x0);
