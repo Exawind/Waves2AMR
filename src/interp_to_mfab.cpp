@@ -452,10 +452,10 @@ void interp_to_mfab::interp_eta_to_levelset_multifab(
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
 
   if (spd_ny == 1) {
-    interp_to_mfab::interp_eta_to_levelset_multifab_2d(
+    interp_to_mfab::interp_eta_to_levelset_multifab2D(
         spd_nx, spd_dx, zsl, etavec, lsfab, problo, dx);
   } else {
-    interp_to_mfab::interp_eta_to_levelset_multifab_3d(
+    interp_to_mfab::interp_eta_to_levelset_multifab3D(
         spd_nx, spd_ny, spd_dx, spd_dy, zsl, etavec, lsfab, problo, dx);
   }
 }
@@ -471,17 +471,17 @@ void interp_to_mfab::interp_velocity_to_multifab(
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
 
   if (spd_ny == 1) {
-    interp_to_mfab::interp_velocity_to_multifab_2d(
+    interp_to_mfab::interp_velocity_to_multifab2D(
         spd_nx, spd_dx, indvec, hvec, uvec, wvec, vfab, problo, dx);
   } else {
-    interp_to_mfab::interp_velocity_to_multifab_3d(
+    interp_to_mfab::interp_velocity_to_multifab3D(
         spd_nx, spd_ny, spd_dx, spd_dy, indvec, hvec, uvec, vvec, wvec, vfab,
         problo, dx);
   }
 }
 
 // Loop through and populate the vector of multifabs with levelset data
-void interp_to_mfab::interp_eta_to_levelset_multifab_3d(
+void interp_to_mfab::interp_eta_to_levelset_multifab3D(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
     const amrex::Real spd_dy, const amrex::Real zsl,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
@@ -558,7 +558,7 @@ void interp_to_mfab::interp_eta_to_levelset_multifab_3d(
 }
 
 // Loop through and populate the multifab with interpolated velocity
-void interp_to_mfab::interp_velocity_to_multifab_3d(
+void interp_to_mfab::interp_velocity_to_multifab3D(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
     const amrex::Real spd_dy, amrex::Vector<int> indvec,
     amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
@@ -709,7 +709,7 @@ void interp_to_mfab::interp_velocity_to_multifab_3d(
 }
 
 // Loop through and populate the vector of multifabs with levelset data
-void interp_to_mfab::interp_eta_to_levelset_multifab_2d(
+void interp_to_mfab::interp_eta_to_levelset_multifab2D(
     const int spd_nx, const amrex::Real spd_dx, const amrex::Real zsl,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
@@ -759,7 +759,7 @@ void interp_to_mfab::interp_eta_to_levelset_multifab_2d(
 }
 
 // Loop through and populate the multifab with interpolated velocity
-void interp_to_mfab::interp_velocity_to_multifab_2d(
+void interp_to_mfab::interp_velocity_to_multifab2D(
     const int spd_nx, const amrex::Real spd_dx, amrex::Vector<int> indvec,
     amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
