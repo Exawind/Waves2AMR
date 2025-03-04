@@ -319,7 +319,8 @@ int interp_to_mfab::check_lateral_overlap_hi(
 // interpolating eta at each point
 void interp_to_mfab::interp_eta_to_levelset_field(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec,
     amrex::Vector<amrex::MultiFab *> lsfield,
     amrex::Vector<amrex::Geometry> geom) {
@@ -333,8 +334,9 @@ void interp_to_mfab::interp_eta_to_levelset_field(
     const auto problo = geom[nl].ProbLoArray();
     const auto dx = geom[nl].CellSizeArray();
 
-    interp_eta_to_levelset_multifab(spd_nx, spd_ny, spd_dx, spd_dy, zsl, etavec,
-                                    lslev, problo, dx);
+    interp_eta_to_levelset_multifab(spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo,
+                                    spd_ylo, zsl, is_periodic, etavec, lslev,
+                                    problo, dx);
   }
 }
 
@@ -342,7 +344,8 @@ void interp_to_mfab::interp_eta_to_levelset_field(
 // interpolating eta at each point
 void interp_to_mfab::interp_eta_to_levelset_field(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec,
     amrex::Vector<amrex::MultiFab *> lsfield,
     amrex::Vector<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>> problo_vec,
@@ -357,16 +360,19 @@ void interp_to_mfab::interp_eta_to_levelset_field(
     const auto problo = problo_vec[nl];
     const auto dx = dx_vec[nl];
 
-    interp_eta_to_levelset_multifab(spd_nx, spd_ny, spd_dx, spd_dy, zsl, etavec,
-                                    lslev, problo, dx);
+    interp_eta_to_levelset_multifab(spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo,
+                                    spd_ylo, zsl, is_periodic, etavec, lslev,
+                                    problo, dx);
   }
 }
 
 // Loop through and populate the multifab with interpolated velocity
 void interp_to_mfab::interp_velocity_to_field(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec,
     amrex::Vector<amrex::MultiFab *> vfield,
@@ -397,16 +403,19 @@ void interp_to_mfab::interp_velocity_to_field(
     const auto dx = geom[nl].CellSizeArray();
 
     // Interpolate velocity for each multifab
-    interp_velocity_to_multifab(spd_nx, spd_ny, spd_dx, spd_dy, indvec, hvec,
-                                uvec, vvec, wvec, vlev, problo, dx);
+    interp_velocity_to_multifab(spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo,
+                                spd_ylo, is_periodic, indvec, hvec, uvec, vvec,
+                                wvec, vlev, problo, dx);
   }
 }
 
 // Loop through and populate the multifab with interpolated velocity
 void interp_to_mfab::interp_velocity_to_field(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec,
     amrex::Vector<amrex::MultiFab *> vfield,
@@ -438,52 +447,59 @@ void interp_to_mfab::interp_velocity_to_field(
     const auto dx = dx_vec[nl];
 
     // Interpolate velocity for each multifab
-    interp_velocity_to_multifab(spd_nx, spd_ny, spd_dx, spd_dy, indvec, hvec,
-                                uvec, vvec, wvec, vlev, problo, dx);
+    interp_velocity_to_multifab(spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo,
+                                spd_ylo, is_periodic, indvec, hvec, uvec, vvec,
+                                wvec, vlev, problo, dx);
   }
 }
 
 // Loop through and populate the vector of multifabs with levelset data
 void interp_to_mfab::interp_eta_to_levelset_multifab(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
 
   if (spd_ny == 1) {
     interp_to_mfab::interp_eta_to_levelset_multifab2D(
-        spd_nx, spd_dx, zsl, etavec, lsfab, problo, dx);
+        spd_nx, spd_dx, spd_xlo, zsl, is_periodic, etavec, lsfab, problo, dx);
   } else {
     interp_to_mfab::interp_eta_to_levelset_multifab3D(
-        spd_nx, spd_ny, spd_dx, spd_dy, zsl, etavec, lsfab, problo, dx);
+        spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, zsl, is_periodic,
+        etavec, lsfab, problo, dx);
   }
 }
 
 // Loop through and populate the multifab with interpolated velocity
 void interp_to_mfab::interp_velocity_to_multifab(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
 
   if (spd_ny == 1) {
-    interp_to_mfab::interp_velocity_to_multifab2D(
-        spd_nx, spd_dx, indvec, hvec, uvec, wvec, vfab, problo, dx);
+    interp_to_mfab::interp_velocity_to_multifab2D(spd_nx, spd_dx, spd_xlo,
+                                                  is_periodic, indvec, hvec,
+                                                  uvec, wvec, vfab, problo, dx);
   } else {
     interp_to_mfab::interp_velocity_to_multifab3D(
-        spd_nx, spd_ny, spd_dx, spd_dy, indvec, hvec, uvec, vvec, wvec, vfab,
-        problo, dx);
+        spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
+        hvec, uvec, vvec, wvec, vfab, problo, dx);
   }
 }
 
 // Loop through and populate the vector of multifabs with levelset data
 void interp_to_mfab::interp_eta_to_levelset_multifab3D(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
@@ -495,17 +511,21 @@ void interp_to_mfab::interp_eta_to_levelset_multifab3D(
     auto bx = mfi.growntilebox();
     amrex::Array4<amrex::Real> lsarr = lsfab.array(mfi);
     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-      // Location of cell
-      amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
-      amrex::Real yc = problo[1] + (j + 0.5) * dx[1];
+      // Location of cell relative to origin of HOS domain
+      amrex::Real xc = problo[0] + (i + 0.5) * dx[0] - spd_xlo;
+      amrex::Real yc = problo[1] + (j + 0.5) * dx[1] - spd_ylo;
       const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
-      // HOS data assumed to be periodic in x and y
       const amrex::Real spd_Lx = spd_nx * spd_dx;
       const amrex::Real spd_Ly = spd_ny * spd_dy;
-      xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
-      xc = ((xc < 0.) ? xc + spd_Lx : xc);
-      yc = ((yc > spd_Ly) ? yc - spd_Ly : yc);
-      yc = ((yc < 0.) ? yc + spd_Ly : yc);
+      if (is_periodic) {
+        xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
+        xc = ((xc < 0.) ? xc + spd_Lx : xc);
+        yc = ((yc > spd_Ly) ? yc - spd_Ly : yc);
+        yc = ((yc < 0.) ? yc + spd_Ly : yc);
+      } else {
+        xc = amrex::min(spd_Lx, amrex::max(0., xc));
+        yc = amrex::min(spd_Ly, amrex::max(0., yc));
+      }
       // Initial positions and indices of HOS spatial data vectors
       int i0 = xc / spd_dx;
       int j0 = yc / spd_dy;
@@ -535,9 +555,16 @@ void interp_to_mfab::interp_eta_to_levelset_multifab3D(
       x1 = spd_dx * i1;
       j1 = j0 + 1;
       y1 = spd_dy * j1;
-      // Periodicity for indices
-      i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
-      j1 = (j1 >= spd_ny) ? j1 - spd_ny : j1;
+      // Bounds for indices
+      if (is_periodic) {
+        i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
+        j1 = (j1 >= spd_ny) ? j1 - spd_ny : j1;
+      } else {
+        i0 += (i1 >= spd_nx) ? -1 : 0;
+        i1 += (i1 >= spd_nx) ? -1 : 0;
+        j0 += (j1 >= spd_ny) ? -1 : 0;
+        j1 += (j1 >= spd_ny) ? -1 : 0;
+      }
       // Form indices for 1D vector of 2D data
       // Row-major is a consequence of performing 2D FFT in C++
       const int idx00 = i0 + j0 * spd_nx;
@@ -560,8 +587,10 @@ void interp_to_mfab::interp_eta_to_levelset_multifab3D(
 // Loop through and populate the multifab with interpolated velocity
 void interp_to_mfab::interp_velocity_to_multifab3D(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
@@ -710,7 +739,8 @@ void interp_to_mfab::interp_velocity_to_multifab3D(
 
 // Loop through and populate the vector of multifabs with levelset data
 void interp_to_mfab::interp_eta_to_levelset_multifab2D(
-    const int spd_nx, const amrex::Real spd_dx, const amrex::Real zsl,
+    const int spd_nx, const amrex::Real spd_dx, const amrex::Real spd_xlo,
+    const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx) {
@@ -726,11 +756,13 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
       amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
       amrex::Real yc = problo[1] + (j + 0.5) * dx[1];
       const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
-      // HOS data assumed to be periodic in x and y
       const amrex::Real spd_Lx = spd_nx * spd_dx;
-      xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
-      xc = ((xc < 0.) ? xc + spd_Lx : xc);
-      // Initial positions and indices of HOS spatial data vectors
+      if (is_periodic) {
+        xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
+        xc = ((xc < 0.) ? xc + spd_Lx : xc);
+      } else {
+        xc = amrex::min(spd_Lx, amrex::max(0., xc));
+      } // Initial positions and indices of HOS spatial data vectors
       int i0 = xc / spd_dx;
       int i1 = i0 + 1;
       amrex::Real x0 = spd_dx * i0, x1 = spd_dx * i1;
@@ -747,8 +779,13 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
       // Get points above
       i1 = i0 + 1;
       x1 = spd_dx * i1;
-      // Periodicity for indices
-      i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
+      // Bounds for indices
+      if (is_periodic) {
+        i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
+      } else {
+        i0 += (i1 >= spd_nx) ? -1 : 0;
+        i1 += (i1 >= spd_nx) ? -1 : 0;
+      }
       // Get surrounding data
       const amrex::Real e0 = etavec_ptr[i0];
       const amrex::Real e1 = etavec_ptr[i1];
@@ -760,7 +797,8 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
 
 // Loop through and populate the multifab with interpolated velocity
 void interp_to_mfab::interp_velocity_to_multifab2D(
-    const int spd_nx, const amrex::Real spd_dx, amrex::Vector<int> indvec,
+    const int spd_nx, const amrex::Real spd_dx, const amrex::Real spd_xlo,
+    const bool is_periodic, amrex::Vector<int> indvec,
     amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
@@ -785,13 +823,16 @@ void interp_to_mfab::interp_velocity_to_multifab2D(
     auto bx = mfi.growntilebox();
     amrex::Array4<amrex::Real> varr = vfab.array(mfi);
     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
-      // Location of cell
-      amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
+      // Location of cell relative to origin of HOS domain
+      amrex::Real xc = problo[0] + (i + 0.5) * dx[0] - spd_xlo;
       const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
-      // HOS data assumed to be periodic in x and y
       const amrex::Real spd_Lx = spd_nx * spd_dx;
-      xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
-      xc = ((xc < 0.) ? xc + spd_Lx : xc);
+      if (is_periodic) {
+        xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
+        xc = ((xc < 0.) ? xc + spd_Lx : xc);
+      } else {
+        xc = amrex::min(spd_Lx, amrex::max(0., xc));
+      }
       // Initial positions and indices of HOS spatial data vectors
       int i0 = xc / spd_dx;
       // Indvec maps from ordinary indices [0 .. number of overlapping heights]
@@ -827,8 +868,13 @@ void interp_to_mfab::interp_velocity_to_multifab2D(
       x1 = spd_dx * i1;
       k_blw = k_abv + 1;
       z0 = hvec_ptr[k_blw];
-      // Periodicity for indices
-      i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
+      // Bounds for indices
+      if (is_periodic) {
+        i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
+      } else {
+        i0 += (i1 >= spd_nx) ? -1 : 0;
+        i1 += (i1 >= spd_nx) ? -1 : 0;
+      }
       // Offset k index to correctly access spatial data
       const int ok_blw = k_blw - indvec_ptr[0];
       const int ok_abv = k_abv - indvec_ptr[0];

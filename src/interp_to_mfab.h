@@ -69,14 +69,17 @@ int check_lateral_overlap_hi(
 void interp_eta_to_levelset_field(const int spd_nx, const int spd_ny,
                                   const amrex::Real spd_dx,
                                   const amrex::Real spd_dy,
-                                  const amrex::Real zsl,
+                                  const amrex::Real spd_xlo,
+                                  const amrex::Real spd_ylo,
+                                  const amrex::Real zsl, const bool is_periodic,
                                   amrex::Gpu::DeviceVector<amrex::Real> etavec,
                                   amrex::Vector<amrex::MultiFab *> lsfield,
                                   amrex::Vector<amrex::Geometry> geom);
 
 void interp_eta_to_levelset_field(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec,
     amrex::Vector<amrex::MultiFab *> lsfield,
     amrex::Vector<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>> problo_vec,
@@ -85,6 +88,8 @@ void interp_eta_to_levelset_field(
 void interp_velocity_to_field(const int spd_nx, const int spd_ny,
                               const amrex::Real spd_dx,
                               const amrex::Real spd_dy,
+                              const amrex::Real spd_xlo,
+                              const amrex::Real spd_ylo, const bool is_periodic,
                               amrex::Vector<int> indvec,
                               amrex::Vector<amrex::Real> hvec,
                               amrex::Gpu::DeviceVector<amrex::Real> uvec,
@@ -95,8 +100,10 @@ void interp_velocity_to_field(const int spd_nx, const int spd_ny,
 
 void interp_velocity_to_field(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec,
     amrex::Vector<amrex::MultiFab *> vfield,
@@ -105,15 +112,18 @@ void interp_velocity_to_field(
 
 void interp_eta_to_levelset_multifab(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx);
 
 void interp_velocity_to_multifab(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
@@ -121,28 +131,33 @@ void interp_velocity_to_multifab(
 
 void interp_eta_to_levelset_multifab3D(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, const amrex::Real zsl,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx);
 
 void interp_velocity_to_multifab3D(
     const int spd_nx, const int spd_ny, const amrex::Real spd_dx,
-    const amrex::Real spd_dy, amrex::Vector<int> indvec,
-    amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
+    const amrex::Real spd_dy, const amrex::Real spd_xlo,
+    const amrex::Real spd_ylo, const bool is_periodic,
+    amrex::Vector<int> indvec, amrex::Vector<amrex::Real> hvec,
+    amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> vvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx);
 
 void interp_eta_to_levelset_multifab2D(
-    const int spd_nx, const amrex::Real spd_dx, const amrex::Real zsl,
+    const int spd_nx, const amrex::Real spd_dx, const amrex::Real spd_xlo,
+    const amrex::Real zsl, const bool is_periodic,
     amrex::Gpu::DeviceVector<amrex::Real> etavec, amrex::MultiFab &lsfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx);
 
 void interp_velocity_to_multifab2D(
-    const int spd_nx, const amrex::Real spd_dx, amrex::Vector<int> indvec,
+    const int spd_nx, const amrex::Real spd_dx, const amrex::Real spd_xlo,
+    const bool is_periodic, amrex::Vector<int> indvec,
     amrex::Vector<amrex::Real> hvec, amrex::Gpu::DeviceVector<amrex::Real> uvec,
     amrex::Gpu::DeviceVector<amrex::Real> wvec, amrex::MultiFab &vfab,
     amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
