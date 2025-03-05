@@ -74,11 +74,16 @@ modes_hosgrid::allocate_copy(const int n0, const int n1,
 }
 
 void modes_hosgrid::populate_hos_eta(
-    const int n0, const int n1, const double dimL, fftw_plan p,
-    fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
+    const int n0, const int n1, const double dimL,
+    std::vector<fftw_plan> p_vector, fftw_complex *eta_modes,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
 
   // Get nondimensional interface height (eta)
-  populate_hos_eta_nondim(n0, n1, p, eta_modes, HOS_eta);
+  if (p_vector.size() == 1) {
+    populate_hos_eta_ocean_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
+  } else {
+    populate_hos_eta_nwt_nondim(n0, n1, p_vector, eta_modes, HOS_eta);
+  }
 
   // Dimensionalize the interface height
   dimensionalize_eta(dimL, HOS_eta);
@@ -86,21 +91,37 @@ void modes_hosgrid::populate_hos_eta(
 
 // Uses ReadModes object directly instead of of separate variables
 void modes_hosgrid::populate_hos_eta(
-    ReadModes rm_obj, fftw_plan p, fftw_complex *eta_modes,
+    ReadModes rm_obj, std::vector<fftw_plan> p_vector, fftw_complex *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
 
   // Pass parameters to function via object calls
   populate_hos_eta(rm_obj.get_first_dimension(), rm_obj.get_second_dimension(),
-                   rm_obj.get_L(), p, eta_modes, HOS_eta);
+                   rm_obj.get_L(), p_vector, eta_modes, HOS_eta);
 }
 
-void modes_hosgrid::populate_hos_eta_nondim(
+void modes_hosgrid::populate_hos_eta_ocean_nondim(
     const int n0, const int n1, fftw_plan p, fftw_complex *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
   // Local array for output data
   double out[n0 * n1];
   // Perform complex-to-real (inverse) FFT
   do_ifftw(n0, n1, p, eta_modes, &out[0]);
+
+  // Copy data to output vector
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + HOS_eta.size(),
+                   HOS_eta.begin());
+
+  // !! -- This function MODIFIES the modes -- !! //
+  //   .. they are not intended to be reused ..   //
+}
+
+void modes_hosgrid::populate_hos_eta_nwt_nondim(
+    const int n0, const int n1, std::vector<fftw_plan> p_vector,
+    fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
+  // Local array for output data
+  double out[n0 * n1];
+  // Perform complex-to-real (inverse) FFT (cos, cos)
+  do_ifftw(n0, n1, true, true, p_vector, eta_modes, &out[0]);
 
   // Copy data to output vector
   amrex::Gpu::copy(amrex::Gpu::hostToDevice, &out[0], &out[0] + HOS_eta.size(),

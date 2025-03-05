@@ -23,16 +23,21 @@ allocate_plan_copy(const int n0, const int n1, fftw_plan &p,
 fftw_complex *allocate_copy(const int n0, const int n1,
                             std::vector<std::complex<double>> complex_vector);
 
-void populate_hos_eta(ReadModes rm_obj, fftw_plan p, fftw_complex *eta_modes,
+void populate_hos_eta(ReadModes rm_obj, std::vector<fftw_plan> p_vector,
+                      fftw_complex *eta_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
 void populate_hos_eta(const int n0, const int n1, const double dimL,
-                      fftw_plan p, fftw_complex *eta_modes,
+                      std::vector<fftw_plan> p_vector, fftw_complex *eta_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
-void populate_hos_eta_nondim(const int n0, const int n1, fftw_plan p,
-                             fftw_complex *eta_modes,
-                             amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
+void populate_hos_eta_ocean_nondim(
+    const int n0, const int n1, fftw_plan p, fftw_complex *eta_modes,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
+
+void populate_hos_eta_nwt_nondim(
+    const int n0, const int n1, std::vector<fftw_plan> p_vector,
+    fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
 void dimensionalize_eta(const double dimL,
                         amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
