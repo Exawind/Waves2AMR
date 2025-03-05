@@ -40,9 +40,9 @@ void dimensionalize_eta(const double dimL,
 void populate_hos_vel(ReadModes rm_obj, const double z,
                       std::vector<std::complex<double>> mX_vector,
                       std::vector<std::complex<double>> mY_vector,
-                      std::vector<std::complex<double>> mZ_vector, fftw_plan p,
-                      fftw_complex *x_modes, fftw_complex *y_modes,
-                      fftw_complex *z_modes,
+                      std::vector<std::complex<double>> mZ_vector,
+                      std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
+                      fftw_complex *y_modes, fftw_complex *z_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
@@ -53,26 +53,37 @@ void populate_hos_vel(const int n0, const int n1, const double xlen,
                       const double dimL, const double dimT,
                       std::vector<std::complex<double>> mX_vector,
                       std::vector<std::complex<double>> mY_vector,
-                      std::vector<std::complex<double>> mZ_vector, fftw_plan p,
-                      fftw_complex *x_modes, fftw_complex *y_modes,
-                      fftw_complex *z_modes,
+                      std::vector<std::complex<double>> mZ_vector,
+                      std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
+                      fftw_complex *y_modes, fftw_complex *z_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
                       const int indv_start = 0);
 
-void populate_hos_vel_nondim(const int n0, const int n1, const double nd_xlen,
-                             const double nd_ylen, const double nd_depth,
-                             const double nd_z,
-                             std::vector<std::complex<double>> mX_vector,
-                             std::vector<std::complex<double>> mY_vector,
-                             std::vector<std::complex<double>> mZ_vector,
-                             fftw_plan p, fftw_complex *x_modes,
-                             fftw_complex *y_modes, fftw_complex *z_modes,
-                             amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
-                             amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
-                             amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
-                             int indv_start = 0);
+void populate_hos_vel_ocean_nondim(const int n0, const int n1,
+                                   const double nd_xlen, const double nd_ylen,
+                                   const double nd_depth, const double nd_z,
+                                   std::vector<std::complex<double>> mX_vector,
+                                   std::vector<std::complex<double>> mY_vector,
+                                   std::vector<std::complex<double>> mZ_vector,
+                                   fftw_plan p, fftw_complex *x_modes,
+                                   fftw_complex *y_modes, fftw_complex *z_modes,
+                                   amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
+                                   amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
+                                   amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
+                                   int indv_start = 0);
+
+void populate_hos_vel_nwt_nondim(
+    const int n0, const int n1, const double nd_xlen, const double nd_ylen,
+    const double nd_z, std::vector<std::complex<double>> mX_vector,
+    std::vector<std::complex<double>> mY_vector,
+    std::vector<std::complex<double>> mZ_vector,
+    std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
+    fftw_complex *y_modes, fftw_complex *z_modes,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_w, int indv_start = 0);
 
 void dimensionalize_vel(const int n0, const int n1, const double dimL,
                         const double dimT,
@@ -82,6 +93,10 @@ void dimensionalize_vel(const int n0, const int n1, const double dimL,
                         int indv_start = 0);
 
 void do_ifftw(const int n0, const int n1, fftw_plan p, fftw_complex *f_in,
+              double *sp_out);
+
+void do_ifftw(const int n0, const int n1, const bool cos_x, const bool cos_y,
+              std::vector<fftw_plan> p_vector, fftw_complex *f_in,
               double *sp_out);
 
 } // namespace modes_hosgrid
