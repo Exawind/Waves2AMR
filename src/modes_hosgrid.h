@@ -31,11 +31,11 @@ void populate_hos_eta(const int n0, const int n1, const double dimL,
                       std::vector<fftw_plan> p_vector, fftw_complex *eta_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
-void populate_hos_eta_ocean_nondim(
+void populate_hos_ocean_eta_nondim(
     const int n0, const int n1, fftw_plan p, fftw_complex *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
-void populate_hos_eta_nwt_nondim(
+void populate_hos_nwt_eta_nondim(
     const int n0, const int n1, std::vector<fftw_plan> p_vector,
     fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
@@ -66,7 +66,7 @@ void populate_hos_vel(const int n0, const int n1, const double xlen,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
                       const int indv_start = 0);
 
-void populate_hos_vel_ocean_nondim(const int n0, const int n1,
+void populate_hos_ocean_vel_nondim(const int n0, const int n1,
                                    const double nd_xlen, const double nd_ylen,
                                    const double nd_depth, const double nd_z,
                                    std::vector<std::complex<double>> mX_vector,
@@ -79,7 +79,7 @@ void populate_hos_vel_ocean_nondim(const int n0, const int n1,
                                    amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
                                    int indv_start = 0);
 
-void populate_hos_vel_nwt_nondim(
+void populate_hos_nwt_vel_nondim(
     const int n0, const int n1, const double nd_xlen, const double nd_ylen,
     const double nd_z, std::vector<std::complex<double>> mX_vector,
     std::vector<std::complex<double>> mY_vector,

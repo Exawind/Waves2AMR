@@ -80,9 +80,9 @@ void modes_hosgrid::populate_hos_eta(
 
   // Get nondimensional interface height (eta)
   if (p_vector.size() == 1) {
-    populate_hos_eta_ocean_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
+    populate_hos_ocean_eta_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
   } else {
-    populate_hos_eta_nwt_nondim(n0, n1, p_vector, eta_modes, HOS_eta);
+    populate_hos_nwt_eta_nondim(n0, n1, p_vector, eta_modes, HOS_eta);
   }
 
   // Dimensionalize the interface height
@@ -99,7 +99,7 @@ void modes_hosgrid::populate_hos_eta(
                    rm_obj.get_L(), p_vector, eta_modes, HOS_eta);
 }
 
-void modes_hosgrid::populate_hos_eta_ocean_nondim(
+void modes_hosgrid::populate_hos_ocean_eta_nondim(
     const int n0, const int n1, fftw_plan p, fftw_complex *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
   // Local array for output data
@@ -115,7 +115,7 @@ void modes_hosgrid::populate_hos_eta_ocean_nondim(
   //   .. they are not intended to be reused ..   //
 }
 
-void modes_hosgrid::populate_hos_eta_nwt_nondim(
+void modes_hosgrid::populate_hos_nwt_eta_nondim(
     const int n0, const int n1, std::vector<fftw_plan> p_vector,
     fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
   // Local array for output data
@@ -161,12 +161,12 @@ void modes_hosgrid::populate_hos_vel(
 
   // Get nondimensional velocities
   if (p_vector.size() == 1) {
-    populate_hos_vel_ocean_nondim(n0, n1, nd_xlen, nd_ylen, nd_depth, nd_z,
+    populate_hos_ocean_vel_nondim(n0, n1, nd_xlen, nd_ylen, nd_depth, nd_z,
                                   mX_vector, mY_vector, mZ_vector, p_vector[0],
                                   x_modes, y_modes, z_modes, HOS_u, HOS_v,
                                   HOS_w, indv_start);
   } else {
-    populate_hos_vel_nwt_nondim(
+    populate_hos_nwt_vel_nondim(
         n0, n1, nd_xlen, nd_ylen, nd_z, mX_vector, mY_vector, mZ_vector,
         p_vector, x_modes, y_modes, z_modes, HOS_u, HOS_v, HOS_w, indv_start);
   }
@@ -195,7 +195,7 @@ void modes_hosgrid::populate_hos_vel(
                    HOS_w, indv_start);
 }
 
-void modes_hosgrid::populate_hos_vel_ocean_nondim(
+void modes_hosgrid::populate_hos_ocean_vel_nondim(
     const int n0, const int n1, const double nd_xlen, const double nd_ylen,
     const double nd_depth, const double nd_z,
     std::vector<std::complex<double>> mX_vector,
@@ -289,7 +289,7 @@ void modes_hosgrid::populate_hos_vel_ocean_nondim(
                    &HOS_w[indv_start]);
 }
 
-void modes_hosgrid::populate_hos_vel_nwt_nondim(
+void modes_hosgrid::populate_hos_nwt_vel_nondim(
     const int n0, const int n1, const double nd_xlen, const double nd_ylen,
     const double nd_z, std::vector<std::complex<double>> mX_vector,
     std::vector<std::complex<double>> mY_vector,
