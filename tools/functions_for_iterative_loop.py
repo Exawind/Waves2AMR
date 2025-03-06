@@ -1,22 +1,25 @@
 import numpy as np
+import scipy as sp
 import pandas as pd
 
-def read_elev(fname,time_skip,nheader,nprobes):
+def read_elev(fname,time_skip,nheader,iprobe):
 
     """
     Extract spatio-temporal data from file
     """
     # take out the nheader row(s)
-    spatiotemporal_data = pd.read_csv(fname,skiprows=nheader,sep='\s+')
+    spatiotemporal_data = pd.read_csv(fname,skiprows=nheader,sep='\s+') # hard coded until better solution is found
     # convert to array for data manipulation purposes
     spatiotemporal_data = spatiotemporal_data.to_numpy()
+    spatiotemporal_data = spatiotemporal_data[:,0:iprobe+1]
     # take out transiet time part
     dt = float(spatiotemporal_data[1,0]) - float(spatiotemporal_data[0,0])
     ntimesteps_skip = int(time_skip/dt)
     spatiotemporal_data = spatiotemporal_data[(ntimesteps_skip+1):,:]
     # separate time and space data
     time = spatiotemporal_data[:,0]
-    elevation = spatiotemporal_data[:,1:nprobes+1]
+    #time = time.reshape(len(time),1)
+    elevation = spatiotemporal_data[:,1:]
 
     return time, elevation
 
@@ -27,15 +30,8 @@ def convert_to_spectrum(time, elevation):
     to convert spatial-temporal data
     to frequency data
     """
-    spectrum = np.fft.fft(elevation)
-    spectrum = 2.*spectrum/len(time) # normalizing by the length of the signal
-    spectrum[0] = spectrum[0]/2.
-    # take only positive frequencies (first half of the signal, since the rest will be complex conjugates of the others)
-    spectrum = spectrum[0:len(spectrum)//2]
-
-    # we might need to fftshift to bring 0 frequency to the center of the signal
-    # should not change much though
-    # spectrum = np.fft.fftshift(spectrum) # taking it out to avoid possible issues with frequency order in wave_maker.dat file
+    spectrum = np.fft.fft(elevation,100000)
+    spectrum = spectrum[0:(len(spectrum)//2 + 1)]
 
     return spectrum.flatten()
 
@@ -46,9 +42,14 @@ def get_input_spectrum(s_input, s_output, s_target):
     """
 
     # Multiply for amplitudes
-    a_input_new = np.abs(s_input)*np.abs(s_target)/np.abs(s_output) 
+    ampli_in = np.abs(s_input)
+    ampli_tg = np.abs(s_target)
+    ampli_out = np.abs(s_output)
+
+    a_input_new = ampli_in*ampli_tg/ampli_out
+
     # Subtract for phases
-    phase_input_new = np.angle(s_input) + (np.angle(s_target)-np.angle(s_output))
+    phase_input_new = np.arctan2(np.imag(s_input),np.real(s_input)) + (np.arctan2(np.imag(s_target),np.real(s_target))-np.arctan2(np.imag(s_output),np.real(s_output)))
 
     s_input_new = a_input_new*np.exp(1j*phase_input_new)
 
@@ -56,20 +57,22 @@ def get_input_spectrum(s_input, s_output, s_target):
 
 # pass a time array and get a frequency resolution from there so that we can get the column of frequencies in the file
 # and the index / high frequency
-def write_input_spectrum(s_input, i_shift, length_of_signal):
+def write_input_spectrum(s_input, i_shift, time):
     # Write to wavemaker.dat
     # need to think about the format a bit more, but here is the idea
     s = np.zeros(s_input.shape)
 
     s = s_input*np.exp(1j*0.5*np.pi*i_shift)
-    
-    # and here we write s to the file
-    frequencies = np.fft.fftfreq(length_of_signal)
-    df = 38./(2.**16) # hard-coded for now. Correct way is to parse it from .cgf file
-    flist = np.arange(0.,max(frequencies),df)
-    nf = int(len(flist)/2.) # only half the frequencies matter
-    amplitudelist = np.abs(s)
-    phaselist = np.angle(s)
+    df = 38./(2.**16)
+    f_max = 141.42/2. # based on Nyquist Criterion, this is the best we can do FFT wise for frequencies
+
+    flist = np.zeros(s_input.shape)
+    for ii in range(len(flist)):
+        flist[ii] = ii*df
+
+    amplitudelist = np.sqrt(2*np.pi)*np.abs(s)/len(time)
+    amplitudelist[1:] = 2.*amplitudelist[1:]
+    phaselist = np.arctan2(np.imag(s),np.real(s))
     angle = 0.0
     with open("wavemaker.dat",'w+') as wave_maker:
         for ifreq in range(nf): # in nf
@@ -79,16 +82,12 @@ def write_input_spectrum(s_input, i_shift, length_of_signal):
 
 
 def time_series_difference(t0, elev0, t1, elev1):
-    # any norm that makes sense
-    # unclear to me why we are passing the time info
-    # if we are comparing the whole thing in the end
 
     elev_diff_norm = np.max(np.abs(elev0 - elev1))
 
     return elev_diff_norm
 
 def measure_convergence(s, s_old):
-    # use also any norm that makes sense
 
     spectrum_norm = np.max(np.abs(s-s_old))
 

@@ -50,26 +50,24 @@ nprobes_probfile = 2
 t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, nheader_probfile, nprobes_probfile)
 
 # Convert to spectra
-s_init_in = convert_to_spectrum(t_init_irr, elev_init_irr[:,0])
-s_init_out = convert_to_spectrum(t_init_irr, elev_init_irr[:,1])
+s_init_in = convert_to_spectrum(t_init_irr, elev_init_irr[:,0]) # at wavemaker (close to it)
+s_init_out = convert_to_spectrum(t_init_irr, elev_init_irr[:,1]) # at target
 
 # Compute dt of simulations
-dt = t_init_irr[1] - t_init_irr[0]
 length_of_signal = len(t_init_irr)
 
 # Read in target time series from experiment and scale
 modelscale_time = np.sqrt(50)
-nheader_experiment = 1
-nprobes_experiment= 1
-t_exp, elev_exp = read_elev("../" + ref_data, tskip * modelscale_time, nheader_experiment, nprobes_experiment)
+nheader_experiment = 0
+nprobes_experiment = 1
+t_exp, elev_exp = read_elev(ref_data, tskip * modelscale_time, nheader_experiment, 1)
 t_exp /= modelscale_time
 modelscale_length = 50.
 elev_exp /= modelscale_length
 
 # Get target spectrum from experiment
-#s_exp = convert_to_spectrum(t_exp, elev_exp)
 # To match size
-s_exp = convert_to_spectrum(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr))])
+s_exp = convert_to_spectrum(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr)),0])
 
 # For first input spectrum for loops
 s_in = get_input_spectrum(s_init_in, s_init_out, s_exp)
@@ -88,8 +86,7 @@ while (n < n_4waves_max and err > tol):
 
         # Add phase shift and write to file
         # pass also a time array to get frequency info
-        # write_input_spectrum(s_in, i)
-        write_input_spectrum(s_in, i, length_of_signal)
+        write_input_spectrum(s_in, i, t_init_irr)
 
         # Run the HOS-NWT simulation
         subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
@@ -106,18 +103,18 @@ while (n < n_4waves_max and err > tol):
 
         # If phase shift = 0, compare time series to target
         if (i == 0):
-            wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, elev_probe)
+            wave_elev_norm = time_series_difference(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr)),0], t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
             print("Time series norm: " + str(wave_elev_norm))
 
         # Convert to spectrum
         if (i == 0):
-            s0 = convert_to_spectrum(t_probe, elev_probe)
+            s0 = convert_to_spectrum(t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
         elif (i == 1):
-            s1 = convert_to_spectrum(t_probe, elev_probe)
+            s1 = convert_to_spectrum(t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
         elif (i == 2):
-            s2 = convert_to_spectrum(t_probe, elev_probe)
+            s2 = convert_to_spectrum(t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
         else:
-            s3 = convert_to_spectrum(t_probe, elev_probe)
+            s3 = convert_to_spectrum(t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
 
     # Use 4 probe time series to generate linear "out" spectrum
     s_out = generate_4wave_out_spectrum(s0, s1, s2, s3)
@@ -141,8 +138,7 @@ while (n < n_1wave_max and err > tol):
     n += 1
 
     # Write latest input spectrum to file
-    #write_input_spectrum(s_in, 0)
-    write_input_spectrum(s_in, 0, length_of_signal)
+    write_input_spectrum(s_in, 0, t_init_irr)
 
     # Run the HOS-NWT simulation
     subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
@@ -158,11 +154,11 @@ while (n < n_1wave_max and err > tol):
     subprocess.call("mv wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
 
     # Compare time series
-    wave_elev_norm = time_series_difference(t_exp, elev_exp, t_probe, elev_probe)
+    wave_elev_norm = time_series_difference(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr)),0], t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
     print("Time series norm: " + str(wave_elev_norm))
 
     # Convert to spectrum
-    s_out = convert_to_spectrum(t_probe, elev_probe)
+    s_out = convert_to_spectrum(t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
 
     # Generate new input spectrum
     s_in = get_input_spectrum(s_in, s_out, s_exp)
@@ -173,6 +169,5 @@ while (n < n_1wave_max and err > tol):
     print("Iteration " + str(n) + " | Error = " + str(err))
 
 # Print final input spectra
-#write_input_spectrum(s_in, 0)
-write_input_spectrum(s_in, 0, length_of_signal)
+write_input_spectrum(s_in, 0, t_init_irr)
 
