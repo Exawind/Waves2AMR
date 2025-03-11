@@ -53,9 +53,6 @@ t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, nheader_probf
 s_init_in = convert_to_spectrum(t_init_irr, elev_init_irr[:,0]) # at wavemaker (close to it)
 s_init_out = convert_to_spectrum(t_init_irr, elev_init_irr[:,1]) # at target
 
-# Compute dt of simulations
-length_of_signal = len(t_init_irr)
-
 # Read in target time series from experiment and scale
 modelscale_time = np.sqrt(50)
 nheader_experiment = 0
@@ -70,7 +67,8 @@ elev_exp /= modelscale_length
 s_exp = convert_to_spectrum(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr)),0])
 
 # For first input spectrum for loops
-s_in = get_input_spectrum(s_init_in, s_init_out, s_exp)
+#s_in = get_input_spectrum(s_init_in, s_init_out, s_exp)
+s_in = s_init_in
 
 # Begin loop for 4-wave decomposition
 print("Begin loop for 4-wave decomposition, n_max = " + str(n_4waves_max))

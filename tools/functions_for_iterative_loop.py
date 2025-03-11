@@ -30,7 +30,7 @@ def convert_to_spectrum(time, elevation):
     to convert spatial-temporal data
     to frequency data
     """
-    spectrum = np.fft.fft(elevation,100000)
+    spectrum = np.fft.fft(elevation,100500)
     spectrum = spectrum[0:(len(spectrum)//2 + 1)]
 
     return spectrum.flatten()
