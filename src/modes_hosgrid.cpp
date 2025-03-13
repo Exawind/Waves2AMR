@@ -364,23 +364,126 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
       (z_modes[idx])[1] = coeff2 * mZ_vector[idx].imag();
     }
   }
-  // Need to prep modes according to sin, cos rules
 
-  // Output pointer
+  // Output vectors
   const int xy_size = n0 * n1;
-  amrex::Vector<amrex::Real> out(xy_size, 0.0);
-  // Perform inverse fft
-  do_ifftw(n0, n1, false, true, p_vector, x_modes, out.data()); // sin, cos
+  amrex::Vector<amrex::Real> out_u(xy_size, 0.0);
+  amrex::Vector<amrex::Real> out_v(xy_size, 0.0);
+  amrex::Vector<amrex::Real> out_w(xy_size, 0.0);
+  // Perform inverse ffts
+  do_ifftw(n0, n1, false, true, p_vector, x_modes, out_u.data()); // sin, cos
+  do_ifftw(n0, n1, true, false, p_vector, y_modes, out_v.data()); // cos, sin
+  do_ifftw(n0, n1, true, true, p_vector, z_modes, out_w.data());  // cos, cos
+
+  /*// Include additional modes for wavemaker
+  if (n_add > 0) {
+    populate_additional_hos_nwt_vel_nondim(
+        n0, n1, n_add, nd_xlen, nd_ylen, nd_z, add_modes_vec, p_vector,
+        ax_modes, ay_modes, az_modes, out_u, out_v, out_w);
+  }*/
+
   // Copy to output vectors
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out_u.begin(), out_u.end(),
                    &HOS_u[indv_start]);
-  // Repeat in other directions (exception for 1D dara)
-  do_ifftw(n0, n1, true, false, p_vector, y_modes, out.data()); // cos, sin
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out_v.begin(), out_v.end(),
                    &HOS_v[indv_start]);
-  do_ifftw(n0, n1, true, true, p_vector, z_modes, out.data()); // cos, cos
-  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out.begin(), out.end(),
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, out_w.begin(), out_w.end(),
                    &HOS_w[indv_start]);
+
+  // Exception for 1D scenario?
+}
+
+void modes_hosgrid::populate_additional_hos_nwt_vel_nondim(
+    const int n0, const int n1, const int n_add, const double nd_xlen,
+    const double nd_ylen, const double nd_z,
+    std::vector<std::complex<double>> add_modes_vec,
+    std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
+    fftw_complex *y_modes, fftw_complex *z_modes,
+    amrex::Vector<amrex::Real> &nwt_u, amrex::Vector<amrex::Real> &nwt_v,
+    amrex::Vector<amrex::Real> &nwt_w) {
+
+  // Reused constants
+  constexpr int l_add = 2;
+  constexpr double k_add_x_max = 700.;
+  const double xlen_add = 2.0 * (double)(l_add);
+  const double pi_xlen_add = M_PI / xlen_add;
+  const double pi_ylen = M_PI / nd_ylen;
+  // Output pointer
+  amrex::Vector<amrex::Real> out_u(n1, 0.0);
+  amrex::Vector<amrex::Real> out_v(n1, 0.0);
+  amrex::Vector<amrex::Real> out_w(n1, 0.0);
+  // Loop modes to modify them
+  for (int ix = 0; ix < n0; ++ix) {
+    const double nd_x = ix * (nd_xlen / (n0 - 1.));
+    for (int iy = 0; iy < n1; ++iy) {
+      const double ky = pi_ylen * (iy - 1.);
+
+      // Start modes at 0 to accumulate
+      (x_modes[iy])[0] = 0.;
+      (x_modes[iy])[1] = 0.;
+      (y_modes[iy])[0] = 0.;
+      (y_modes[iy])[1] = 0.;
+      (z_modes[iy])[0] = 0.;
+      (z_modes[iy])[1] = 0.;
+
+      for (int ia = 0; ia < n_add; ++ia) {
+
+        const double kx_add = (2. * ia - 1.) * pi_xlen_add;
+        const double kxy_add = sqrt(kx_add * kx_add + ky * ky);
+        const double coskx_add = cos(kx_add * (nd_z + 1.));
+        const double sinkx_add = sin(kx_add * (nd_z + 1.));
+        const double k_add_x1 = kxy_add * nd_x;
+        const double k_add_x2 = (2. * kx_add) * (nd_xlen - nd_x);
+
+        double expon3 = 0.;
+        if (2. * kxy_add * nd_xlen <= k_add_x_max) {
+          expon3 = exp(-2. * kxy_add * nd_xlen);
+        }
+        double expon1 = 0.;
+        if (k_add_x1 <= k_add_x_max) {
+          expon1 = exp(-k_add_x1) / (expon3 + 1.);
+        }
+        double expon2 = 0.;
+        if (k_add_x2 <= k_add_x_max) {
+          expon2 = exp(-k_add_x2);
+        }
+        double expon12 = 0.;
+        if ((k_add_x1 + k_add_x2) <= k_add_x_max) {
+          expon12 = expon1 * expon2;
+        }
+
+        const double csh_add = expon1 + expon12;
+        const double sh_add = expon1 - expon12;
+
+        const double kx_add_csh_add_x = csh_add * kx_add;
+        const double k_add_sh_add_x = sh_add * kxy_add;
+        const double kycsh_add_x = csh_add * ky;
+
+        const double coeff2 = sinkx_add * kx_add_csh_add_x;
+        const double coeff3 = coskx_add * k_add_sh_add_x;
+        const double coeff4 = coskx_add * kycsh_add_x;
+
+        const int idx = iy * n_add + ia;
+        (x_modes[iy])[0] -= (add_modes_vec[idx]).real() * coeff3;
+        (x_modes[iy])[1] -= (add_modes_vec[idx]).imag() * coeff3;
+        (y_modes[iy])[0] -= (add_modes_vec[idx]).real() * coeff4;
+        (y_modes[iy])[1] -= (add_modes_vec[idx]).imag() * coeff4;
+        (z_modes[iy])[0] -= (add_modes_vec[idx]).real() * coeff2;
+        (z_modes[iy])[1] -= (add_modes_vec[idx]).imag() * coeff2;
+      }
+    }
+
+    // Perform inverse ffts ... exception for 1D?
+    do_ifftw(n1, true, p_vector, x_modes, out_u.data());  // cos
+    do_ifftw(n1, false, p_vector, y_modes, out_v.data()); // sin
+    do_ifftw(n1, true, p_vector, z_modes, out_w.data());  // cos
+    // Add to incoming vectors, copied elsewhere
+    for (int iy = 0; iy < n1; ++iy) {
+      nwt_u[ix * n1 + iy] += out_u[iy];
+      nwt_v[ix * n1 + iy] += out_v[iy];
+      nwt_w[ix * n1 + iy] += out_w[iy];
+    }
+  }
 }
 
 void modes_hosgrid::dimensionalize_vel(
@@ -470,5 +573,38 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_x,
       sp_out[ix * n1 + 0] = 0.;
       sp_out[ix * n1 + n1 - 1] = 0.;
     }
+  }
+}
+
+void modes_hosgrid::do_ifftw(const int n1, const bool cos_y,
+                             std::vector<fftw_plan> p_vector,
+                             fftw_complex *f_in, double *sp_out) {
+  // Select plan
+  int iplan = 0;
+  if (cos_y) {
+    iplan = 4; // Cy
+  } else {
+    iplan = 5; // Sy
+  }
+
+  // Modify modes with conversion coefficients
+  for (int iy = 0; iy < n1; ++iy) {
+    const double f2s = ((iy == 0 || iy == n1 - 1) ? 1.0 : 0.5);
+    (f_in[iy])[0] *= f2s;
+    (f_in[iy])[1] *= f2s;
+  }
+  if (!cos_y) {
+    (f_in[0])[0] = 0.;
+    (f_in[0])[1] = 0.;
+    (f_in[n1 - 1])[0] = 0.;
+    (f_in[n1 - 1])[1] = 0.;
+  }
+
+  // Perform fft
+  fftw_execute_dft_c2r(p_vector[iplan], f_in, sp_out);
+
+  if (!cos_y) {
+    sp_out[0] = 0.;
+    sp_out[n1 - 1] = 0.;
   }
 }
