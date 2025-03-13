@@ -70,6 +70,8 @@ def write_input_spectrum(s_input, i_shift, time):
     for ii in range(len(flist)):
         flist[ii] = ii*df
 
+    idx_max = int(np.argmin(np.abs((f_max/np.sqrt(2*np.pi)-flist))))
+    nf = idx_max
     amplitudelist = np.sqrt(2*np.pi)*np.abs(s)/len(time)
     amplitudelist[1:] = 2.*amplitudelist[1:]
     phaselist = np.arctan2(np.imag(s),np.real(s))
