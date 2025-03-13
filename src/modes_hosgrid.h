@@ -23,6 +23,10 @@ allocate_plan_copy(const int n0, const int n1, fftw_plan &p,
 fftw_complex *allocate_copy(const int n0, const int n1,
                             std::vector<std::complex<double>> complex_vector);
 
+void plan_ifftw_nwt(const int n0, const int n1,
+                    std::vector<fftw_plan> plan_vector, double *in,
+                    double *in_sin, double *in_y, const planner_flags wisdom);
+
 void populate_hos_eta(ReadModes rm_obj, std::vector<fftw_plan> p_vector,
                       fftw_complex *eta_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);

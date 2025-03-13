@@ -49,6 +49,66 @@ modes_hosgrid::plan_ifftw(const int n0, const int n1, fftw_complex *in,
   return fftw_plan_dft_c2r_2d(n0, n1, in, &out[0][0], flag);
 }
 
+void modes_hosgrid::plan_ifftw_nwt(
+    const int n0, const int n1, std::vector<fftw_plan> plan_vector, double *in,
+    double *in_sin, double *in_y,
+    const planner_flags wisdom = planner_flags::patient) {
+  unsigned int flag;
+  switch (wisdom) {
+  case planner_flags::estimate:
+    flag = FFTW_ESTIMATE;
+    break;
+  case planner_flags::patient:
+    flag = FFTW_PATIENT;
+    break;
+  case planner_flags::exhaustive:
+    flag = FFTW_EXHAUSTIVE;
+    break;
+  case planner_flags::measure:
+    flag = FFTW_MEASURE;
+    break;
+  default:
+    std::cout << "ABORT: Planner flag supplied to modes_hosgrid::plan_ifftw is "
+                 "invalid or unsupported.\n";
+    std::exit(1);
+  }
+  // Output array is used for planning (except for FFTW_ESTIMATE)
+  double out[n0][n1];
+  double out_sin[n0 - 2][n1];
+  double out_y[n1];
+  // Very confused on the importance of indexing here??
+  if (n1 == 1) {
+    // CC
+    plan_vector.emplace_back(
+        fftw_plan_r2r_1d(n0, in, &out[0][0], FFTW_REDFT00, flag));
+    // SC
+    plan_vector.emplace_back(
+        fftw_plan_r2r_1d(n0 - 2, in_sin, &out_sin[0][0], FFTW_RODFT00, flag));
+    // None for CS, SS, Cy, Sy
+
+  } else {
+    // CC
+    plan_vector.emplace_back(fftw_plan_r2r_2d(
+        n0, n1, in, &out[0][0], FFTW_REDFT00, FFTW_REDFT00, flag));
+    // SC
+    plan_vector.emplace_back(fftw_plan_r2r_2d(
+        n0 - 2, n1, in_sin, &out_sin[0][0], FFTW_RODFT00, FFTW_REDFT00, flag));
+    // CS
+    plan_vector.emplace_back(fftw_plan_r2r_2d(
+        n0, n1 - 2, in + n0, &out[0][1], FFTW_REDFT00, FFTW_RODFT00, flag));
+    // SS
+    plan_vector.emplace_back(fftw_plan_r2r_2d(n0 - 2, n1 - 2, in_sin + n0 - 2,
+                                              &out_sin[0][1], FFTW_RODFT00,
+                                              FFTW_RODFT00, flag));
+    // Cy
+    plan_vector.emplace_back(
+        fftw_plan_r2r_1d(n1, in_y, &out_y[0], FFTW_REDFT00, flag));
+    // Sy
+    plan_vector.emplace_back(
+        fftw_plan_r2r_1d(n1 - 2, in_y + 1, &out_y[1], FFTW_RODFT00, flag));
+  }
+}
+
 fftw_complex *modes_hosgrid::allocate_plan_copy(
     const int n0, const int n1, fftw_plan &p,
     std::vector<std::complex<double>> complex_vector) {
