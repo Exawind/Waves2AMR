@@ -1,4 +1,9 @@
-target_sources(${w2a_test_name}
+target_sources(${w2a_ocean_test_name}
     PRIVATE
-    main.cpp
+    main_Ocean.cpp
+    )
+
+target_sources(${w2a_nwt_2d_test_name}
+    PRIVATE
+    main_NWT_2D.cpp
     )
