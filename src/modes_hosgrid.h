@@ -27,7 +27,8 @@ void plan_ifftw_nwt(const int n0, const int n1,
                     std::vector<fftw_plan> plan_vector, double *in,
                     double *in_sin, double *in_y, const planner_flags wisdom);
 
-void populate_hos_eta(ReadModes rm_obj, std::vector<fftw_plan> p_vector,
+template <typename VT>
+void populate_hos_eta(ReadModes<VT> rm_obj, std::vector<fftw_plan> p_vector,
                       fftw_complex *eta_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
@@ -46,7 +47,8 @@ void populate_hos_nwt_eta_nondim(
 void dimensionalize_eta(const double dimL,
                         amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
-void populate_hos_vel(ReadModes rm_obj, const double z,
+template <typename VT>
+void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
                       std::vector<std::complex<double>> mX_vector,
                       std::vector<std::complex<double>> mY_vector,
                       std::vector<std::complex<double>> mZ_vector,
@@ -121,4 +123,7 @@ void do_ifftw(const int n1, const bool cos_y, std::vector<fftw_plan> p_vector,
               fftw_complex *f_in, double *sp_out);
 
 } // namespace modes_hosgrid
+
+#include "modes_hosgrid.tpp"
+
 #endif

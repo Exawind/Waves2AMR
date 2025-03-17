@@ -9,7 +9,7 @@ class CombinedTest : public testing::Test {};
 TEST_F(CombinedTest, ReadFFTNonDim) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, 0.0);
@@ -125,7 +125,7 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
 TEST_F(CombinedTest, ReadFFTDim) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, 0.0);
@@ -249,7 +249,7 @@ TEST_F(CombinedTest, ReadFFTDim) {
 TEST_F(CombinedTest, ReadFFTDimRMObj) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, 0.0);

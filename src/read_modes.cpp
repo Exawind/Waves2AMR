@@ -1,13 +1,16 @@
 #include "read_modes.h"
 
-ReadModes::ReadModes(std::string filename, bool allmodes)
-    : m_filename(filename), is_init(true) {
+template class ReadModes<double>;
+template class ReadModes<std::complex<double>>;
+
+/*template <>
+ReadModes::ReadModes(std::string filename, bool is_ocean, bool allmodes)
+    : m_filename(filename), is_HOS_Ocean(is_ocean), is_init(true) {
   // Set time index value
   itime_now = 0;
-  // TODO: Determine filetype
 
-  // Initialize (TODO: according to file type)
-  bool file_exists = ascii_initialize();
+  // Initialize
+  bool file_exists = ascii_initialize(is_HOS_Ocean);
   if (!file_exists) {
     std::cout << "ABORT: ReadModes is initializing with a file, but the "
                  "specified file does not exist.\n";
@@ -18,17 +21,34 @@ ReadModes::ReadModes(std::string filename, bool allmodes)
   n1o2p1 = n1 / 2 + 1;
 
   // Calculate size of mode vectors
-  vec_size = n2 * n1o2p1;
+  vec_size = n2 * (is_HOS_Ocean ? n1o2p1 : n1);
 
   // Set size of mode vectors
-  modeX.resize(vec_size);
-  modeY.resize(vec_size);
-  modeZ.resize(vec_size);
-  modeFS.resize(vec_size);
-  // These modes are optional
-  if (allmodes) {
-    modeT.resize(vec_size);
-    modeFST.resize(vec_size);
+  if (is_ocean) {
+    // HOS-Ocean
+    n1o2p1 = n1 / 2 + 1;
+    vec_size = n2 * n1o2p1;
+    c_modeX.resize(vec_size);
+    c_modeY.resize(vec_size);
+    c_modeZ.resize(vec_size);
+    c_modeFS.resize(vec_size);
+    // These modes are optional
+    if (allmodes) {
+      c_modeT.resize(vec_size);
+      c_modeFST.resize(vec_size);
+    }
+  } else {
+    // NWT
+    vec_size = n2 * n1;
+    r_modeX.resize(vec_size);
+    r_modeY.resize(vec_size);
+    r_modeZ.resize(vec_size);
+    r_modeFS.resize(vec_size);
+    // These modes are optional
+    if (allmodes) {
+      r_modeT.resize(vec_size);
+      r_modeFST.resize(vec_size);
+    }
   }
 
   // Dimensionalize all nondim scalar quantities
@@ -53,7 +73,7 @@ ReadModes::ReadModes(double dt_out_, double T_stop_, double xlen_, double ylen_,
 // Do-nothing constructor, initializer must be called later
 ReadModes::ReadModes() : is_init(false) {}
 
-bool ReadModes::initialize(std::string filename, bool allmodes) {
+bool ReadModes::initialize(std::string filename, bool is_ocean, bool allmodes) {
   // Check if already initialized
   if (is_init) {
     std::cout << "ABORT: ReadModes has already been initialized, but "
@@ -62,32 +82,44 @@ bool ReadModes::initialize(std::string filename, bool allmodes) {
   }
   is_init = true;
   m_filename = filename;
+  is_HOS_Ocean = is_ocean;
 
   // Set time index value
   itime_now = 0;
   // TODO: Determine filetype
 
   // Initialize (TODO: according to file type)
-  bool file_exists = ascii_initialize();
+  bool file_exists = ascii_initialize(is_HOS_Ocean);
   if (!file_exists) {
     return file_exists;
   }
 
-  // Get working dimensions
-  n1o2p1 = n1 / 2 + 1;
-
-  // Calculate size of mode vectors
-  vec_size = n2 * n1o2p1;
-
   // Set size of mode vectors
-  modeX.resize(vec_size);
-  modeY.resize(vec_size);
-  modeZ.resize(vec_size);
-  modeFS.resize(vec_size);
-  // These modes are optional
-  if (allmodes) {
-    modeT.resize(vec_size);
-    modeFST.resize(vec_size);
+  if (is_ocean) {
+    // HOS-Ocean
+    n1o2p1 = n1 / 2 + 1;
+    vec_size = n2 * n1o2p1;
+    c_modeX.resize(vec_size);
+    c_modeY.resize(vec_size);
+    c_modeZ.resize(vec_size);
+    c_modeFS.resize(vec_size);
+    // These modes are optional
+    if (allmodes) {
+      c_modeT.resize(vec_size);
+      c_modeFST.resize(vec_size);
+    }
+  } else {
+    // NWT
+    vec_size = n2 * n1;
+    r_modeX.resize(vec_size);
+    r_modeY.resize(vec_size);
+    r_modeZ.resize(vec_size);
+    r_modeFS.resize(vec_size);
+    // These modes are optional
+    if (allmodes) {
+      r_modeT.resize(vec_size);
+      r_modeFST.resize(vec_size);
+    }
   }
 
   // Dimensionalize all nondim scalar quantities
@@ -151,12 +183,12 @@ void ReadModes::output_data(std::vector<std::complex<double>> &v1,
                             std::vector<std::complex<double>> &v5,
                             std::vector<std::complex<double>> &v6) {
   // Copy class variables to input/output variables
-  std::copy(modeX.begin(), modeX.end(), v1.begin());
-  std::copy(modeY.begin(), modeY.end(), v2.begin());
-  std::copy(modeZ.begin(), modeZ.end(), v3.begin());
-  std::copy(modeT.begin(), modeT.end(), v4.begin());
-  std::copy(modeFS.begin(), modeFS.end(), v5.begin());
-  std::copy(modeFST.begin(), modeFST.end(), v6.begin());
+  std::copy(c_modeX.begin(), c_modeX.end(), v1.begin());
+  std::copy(c_modeY.begin(), c_modeY.end(), v2.begin());
+  std::copy(c_modeZ.begin(), c_modeZ.end(), v3.begin());
+  std::copy(c_modeT.begin(), c_modeT.end(), v4.begin());
+  std::copy(c_modeFS.begin(), c_modeFS.end(), v5.begin());
+  std::copy(c_modeFST.begin(), c_modeFST.end(), v6.begin());
 }
 
 void ReadModes::output_data(std::vector<std::complex<double>> &v1,
@@ -164,10 +196,10 @@ void ReadModes::output_data(std::vector<std::complex<double>> &v1,
                             std::vector<std::complex<double>> &v3,
                             std::vector<std::complex<double>> &v4) {
   // Copy class variables to input/output variables
-  std::copy(modeX.begin(), modeX.end(), v1.begin());
-  std::copy(modeY.begin(), modeY.end(), v2.begin());
-  std::copy(modeZ.begin(), modeZ.end(), v3.begin());
-  std::copy(modeFS.begin(), modeFS.end(), v4.begin());
+  std::copy(c_modeX.begin(), c_modeX.end(), v1.begin());
+  std::copy(c_modeY.begin(), c_modeY.end(), v2.begin());
+  std::copy(c_modeZ.begin(), c_modeZ.end(), v3.begin());
+  std::copy(c_modeFS.begin(), c_modeFS.end(), v4.begin());
 }
 
 bool ReadModes::get_data(double time, std::vector<std::complex<double>> &mX,
@@ -229,3 +261,4 @@ void ReadModes::print_file_constants() {
   std::cout << "xlen " << xlen << " ylen " << ylen << std::endl;
   std::cout << "depth " << depth << " g " << g << " L " << L << std::endl;
 }
+  */

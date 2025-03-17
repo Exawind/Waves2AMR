@@ -17,7 +17,8 @@ protected:
 };
 
 TEST_F(ReadOpsTest, Dimensionalize) {
-  ReadModes rmodes(dt_out_, T_stop_, xlen_, ylen_, depth_, g_, L_, T_);
+  ReadModes<std::complex<double>> rmodes(dt_out_, T_stop_, xlen_, ylen_, depth_,
+                                         g_, L_, T_);
 
   EXPECT_EQ(rmodes.get_f(), 1.0 / dt_out_ / T_);
   EXPECT_EQ(rmodes.get_Tstop(), T_stop_ * T_);
@@ -30,7 +31,8 @@ TEST_F(ReadOpsTest, Dimensionalize) {
 }
 
 TEST_F(ReadOpsTest, Timestep) {
-  ReadModes rmodes(dt_out_, T_stop_, xlen_, ylen_, depth_, g_, L_, T_);
+  ReadModes<std::complex<double>> rmodes(dt_out_, T_stop_, xlen_, ylen_, depth_,
+                                         g_, L_, T_);
   double dt = dt_out_ * T_;
   EXPECT_NEAR(dt, rmodes.get_dtout(), 1e-12);
 

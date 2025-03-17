@@ -6,16 +6,18 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+template <typename VT>
 class ReadModes {
 public:
-  ReadModes(std::string, bool allmodes = false);
+  ReadModes(std::string, bool is_ocean = true, bool allmodes = false);
 
   ReadModes(double dt_out_, double T_stop_, double xlen_, double ylen_,
             double depth_, double g_, double L_, double T_);
 
   ReadModes();
 
-  bool initialize(std::string, bool allmodes = false);
+  bool initialize(std::string, bool is_ocean = true, bool allmodes = false);
 
   void print_file_constants();
 
@@ -23,41 +25,41 @@ public:
 
   bool read_data(int itime);
 
-  void output_data(std::vector<std::complex<double>> &v1,
-                   std::vector<std::complex<double>> &v2,
-                   std::vector<std::complex<double>> &v3,
-                   std::vector<std::complex<double>> &v4,
-                   std::vector<std::complex<double>> &v5,
-                   std::vector<std::complex<double>> &v6);
+  void output_data(std::vector<VT> &v1,
+                   std::vector<VT> &v2,
+                   std::vector<VT> &v3,
+                   std::vector<VT> &v4,
+                   std::vector<VT> &v5,
+                   std::vector<VT> &v6);
 
-  bool get_data(double time, std::vector<std::complex<double>> &mX,
-                std::vector<std::complex<double>> &mY,
-                std::vector<std::complex<double>> &mZ,
-                std::vector<std::complex<double>> &mT,
-                std::vector<std::complex<double>> &mFS,
-                std::vector<std::complex<double>> &mFST);
+  bool get_data(double time, std::vector<VT> &mX,
+                std::vector<VT> &mY,
+                std::vector<VT> &mZ,
+                std::vector<VT> &mT,
+                std::vector<VT> &mFS,
+                std::vector<VT> &mFST);
 
-  bool get_data(int itime, std::vector<std::complex<double>> &mX,
-                std::vector<std::complex<double>> &mY,
-                std::vector<std::complex<double>> &mZ,
-                std::vector<std::complex<double>> &mT,
-                std::vector<std::complex<double>> &mFS,
-                std::vector<std::complex<double>> &mFST);
+  bool get_data(int itime, std::vector<VT> &mX,
+                std::vector<VT> &mY,
+                std::vector<VT> &mZ,
+                std::vector<VT> &mT,
+                std::vector<VT> &mFS,
+                std::vector<VT> &mFST);
 
-  void output_data(std::vector<std::complex<double>> &v1,
-                   std::vector<std::complex<double>> &v2,
-                   std::vector<std::complex<double>> &v3,
-                   std::vector<std::complex<double>> &v4);
+  void output_data(std::vector<VT> &v1,
+                   std::vector<VT> &v2,
+                   std::vector<VT> &v3,
+                   std::vector<VT> &v4);
 
-  bool get_data(double time, std::vector<std::complex<double>> &mX,
-                std::vector<std::complex<double>> &mY,
-                std::vector<std::complex<double>> &mZ,
-                std::vector<std::complex<double>> &mFS);
+  bool get_data(double time, std::vector<VT> &mX,
+                std::vector<VT> &mY,
+                std::vector<VT> &mZ,
+                std::vector<VT> &mFS);
 
-  bool get_data(int itime, std::vector<std::complex<double>> &mX,
-                std::vector<std::complex<double>> &mY,
-                std::vector<std::complex<double>> &mZ,
-                std::vector<std::complex<double>> &mFS);
+  bool get_data(int itime, std::vector<VT> &mX,
+                std::vector<VT> &mY,
+                std::vector<VT> &mZ,
+                std::vector<VT> &mFS);
 
   // Calculate size of data for each mode variable (# of complex values)
   int get_vector_size() { return vec_size; }
@@ -95,7 +97,7 @@ public:
 
 private:
   // ASCII functions
-  bool ascii_initialize();
+  bool ascii_initialize(bool is_ocean);
   bool ascii_read(const int itime);
   bool ascii_read_full(const int itime);
   bool ascii_read_brief(const int itime);
@@ -111,10 +113,11 @@ private:
   double dt_out, f_out, T_stop, xlen, ylen, depth, g, L, T;
 
   // HOS data vectors
-  std::vector<std::complex<double>> modeX, modeY, modeZ, modeT, modeFS, modeFST;
-
+  std::vector<VT> modeX, modeY, modeZ, modeT, modeFS, modeFST;
+  
   // HOS working dimensions
-  int n1o2p1;
+  int n1o2p1; // Ocean only
+  int nX;     // NWT only
   int nYmode;
   int vec_size;
 
@@ -126,6 +129,11 @@ private:
 
   // Is initialized? for constructor vs initializer functions
   bool is_init{false};
+
+  // Type of mode input and format: HOS-Ocean or HOS-NWT
+  bool is_HOS_Ocean{true};
 };
+
+#include "read_modes.tpp"
 
 #endif

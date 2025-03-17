@@ -1,7 +1,8 @@
 #include "read_modes.h"
 #include <iterator>
 
-bool ReadModes::ascii_initialize() {
+template<>
+bool ReadModes<std::complex<double>>::ascii_initialize(bool is_ocean) {
   std::stringstream fname;
   fname << m_filename;
   std::ifstream is(fname.str());
@@ -26,17 +27,8 @@ bool ReadModes::ascii_initialize() {
   return file_exists;
 }
 
-// Output is a flag where true = successful read, false = eof found
-bool ReadModes::ascii_read(const int itime) {
-
-  if (modeT.size() == 0) {
-    return ascii_read_brief(itime);
-  } else {
-    return ascii_read_full(itime);
-  }
-}
-
-bool ReadModes::ascii_read_full(const int itime) {
+template<>
+bool ReadModes<std::complex<double>>::ascii_read_full(const int itime) {
   bool eof_not_found = true;
   std::stringstream fname;
   fname << m_filename;
@@ -113,7 +105,8 @@ bool ReadModes::ascii_read_full(const int itime) {
   return eof_not_found;
 }
 
-bool ReadModes::ascii_read_brief(const int itime) {
+template <>
+bool ReadModes<std::complex<double>>::ascii_read_brief(const int itime) {
   bool eof_not_found = true;
   std::stringstream fname;
   fname << m_filename;
@@ -186,4 +179,15 @@ bool ReadModes::ascii_read_brief(const int itime) {
   }
   // Return eof_not_found value, should be true at this point
   return eof_not_found;
+}
+
+// Output is a flag where true = successful read, false = eof found
+template<>
+bool ReadModes<std::complex<double>>::ascii_read(const int itime) {
+
+  if (modeT.size() == 0) {
+    return ascii_read_brief(itime);
+  } else {
+    return ascii_read_full(itime);
+  }
 }

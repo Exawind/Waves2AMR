@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
   // Name of modes file
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Initialize mode reader and dimensionalize params
-  ReadModes rmodes(fname, false);
+  ReadModes<std::complex<double>> rmodes(fname, true, false);
   int n0 = rmodes.get_first_dimension();
   int n1 = rmodes.get_second_dimension();
   double depth = rmodes.get_depth();

@@ -9,7 +9,7 @@ namespace {
 std::array<double, 8> ModeSum(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read and convert nondim quantities
-  ReadModes rmodes(fname, true);
+  ReadModes<std::complex<double>> rmodes(fname, true);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -47,7 +47,7 @@ std::array<double, 8> ModeSum(double time, double initval) {
 std::array<double, 6> ModeSumBrief(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read modes
-  ReadModes rmodes(fname, false);
+  ReadModes<std::complex<double>> rmodes(fname, false);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -79,7 +79,7 @@ std::array<double, 6> ModeSumBrief(double time, double initval) {
 bool ModeFlag(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read and convert nondim quantities
-  ReadModes rmodes(fname, true);
+  ReadModes<std::complex<double>> rmodes(fname, true);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -98,7 +98,7 @@ bool ModeFlag(double time, double initval) {
 bool ModeFlagBrief(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read modes
-  ReadModes rmodes(fname, false);
+  ReadModes<std::complex<double>> rmodes(fname, false);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -120,7 +120,7 @@ TEST_F(AsciiReadTest, InitNonDim) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
 
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
 
   EXPECT_EQ(rmodes.get_n1(), 64);
   EXPECT_EQ(rmodes.get_n2(), 64);
@@ -137,7 +137,7 @@ TEST_F(AsciiReadTest, InitNonDim) {
 TEST_F(AsciiReadTest, InitDim) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
 
   constexpr double tol = 1e-11;
   EXPECT_NEAR(rmodes.get_f(), 0.01, tol);
@@ -152,7 +152,7 @@ TEST_F(AsciiReadTest, InitEmptyConstructor) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
 
   // Read
-  ReadModes rmodes;
+  ReadModes<std::complex<double>> rmodes;
 
   rmodes.initialize(fname);
 
@@ -180,7 +180,7 @@ TEST_F(AsciiReadTest, InitializeFail) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
 
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
 
   EXPECT_DEATH(rmodes.initialize(fname);, "");
 }
@@ -189,14 +189,14 @@ TEST_F(AsciiReadTest, InitializeNoFile1) {
   std::string fname = "../tests/modes_HOS_SWENSE_missing.dat";
 
   // Initialize with file that does not exist
-  EXPECT_DEATH(ReadModes rmodes(fname);, "");
+  EXPECT_DEATH(ReadModes<std::complex<double>> rmodes(fname);, "");
 }
 
 TEST_F(AsciiReadTest, InitializeNoFile2) {
   std::string fname = "../tests/modes_HOS_SWENSE_missing.dat";
 
   // Initialize with file that does not exist
-  ReadModes rmodes;
+  ReadModes<std::complex<double>> rmodes;
 
   EXPECT_FALSE(rmodes.initialize(fname));
 }
