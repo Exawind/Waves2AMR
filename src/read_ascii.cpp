@@ -211,11 +211,17 @@ template <> bool ReadModes<double>::ascii_initialize(bool is_ocean) {
 
   // Grid2Grid hosNWT.inc, line 297
   double d_n1, d_n2, d_n3;
-  is >> d_n1 >> d_n2 >> d_n3 >> dt_out >> T_stop >> xlen >> ylen >> depth;
+  // (yes, these are supposed to be out of order)
+  is >> d_n1 >> d_n3 >> d_n2 >> dt_out >> T_stop >> xlen >> ylen >> depth;
 
-  // xlen, ylen, and depth are nondimensionalized
+  // xlen, ylen are nondimensionalized
+  // depth is not, see lines 264-265
   L = depth;
-  T = sqrt(depth / g); // where does g come from?
+  T = sqrt(depth / g_const);
+
+  // Set up non-dimensional quantities that will be dimensionalized later
+  depth = 1.0;
+  g = g_const / L * T * T;
 
   // Convert values
   n1 = (int)d_n1;

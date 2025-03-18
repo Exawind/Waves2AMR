@@ -95,7 +95,7 @@ private:
   std::string m_filename;
 
   // HOS data dimensions
-  int n1, n2, n3;
+  int n1, n2, n3{-1};
   double dt_out, f_out, T_stop, xlen, ylen, depth, g, L, T;
 
   // HOS data vectors
@@ -108,6 +108,9 @@ private:
 
   // Current time index
   int itime_now;
+
+  // Constants (used in NWT case)
+  static constexpr double g_const = 9.81;
 
   // Relate between format of modes and FFT (only one option now)
   const bool from_fortran = true;

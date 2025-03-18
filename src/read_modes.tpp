@@ -226,7 +226,11 @@ bool ReadModes<VT>::get_data(int itime, std::vector<VT> &mX,
 template <typename VT> void ReadModes<VT>::print_file_constants() {
   std::cout << "f_out " << f_out << " T " << T << " T_stop " << T_stop
             << std::endl;
-  std::cout << "n1 " << n1 << " n2 " << n2 << std::endl;
+  std::cout << "n1 " << n1 << " n2 " << n2;
+  if (n3 > 0) {
+    std::cout << " n3 " << n3;
+  }
+  std::cout << std::endl;
   std::cout << "xlen " << xlen << " ylen " << ylen << std::endl;
   std::cout << "depth " << depth << " g " << g << " L " << L << std::endl;
 }

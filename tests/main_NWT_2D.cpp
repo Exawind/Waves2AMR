@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
   }
   // Create representation of entire AMR-Wind mesh
   // Physical bounds of domain
-  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo{0., 0., -10.};
-  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> probhi{20., 20., 10.};
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo{0., 0., -3.6};
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> probhi{28., 4., 1.4};
   amrex::RealBox rbox(problo.data(), probhi.data());
   // Domain boxes for each level
-  int nxg0 = 64;
-  int nyg0 = 64;
-  int nzg0 = 64;
+  int nxg0 = 128;
+  int nyg0 = 16;
+  int nzg0 = 16;
   amrex::Box domainbox0(amrex::IntVect{0, 0, 0},
                         amrex::IntVect{nxg0 - 1, nyg0 - 1, nzg0 - 1});
   amrex::Box domainbox1(
