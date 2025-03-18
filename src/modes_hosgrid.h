@@ -32,7 +32,7 @@ fftw_complex *allocate_copy(const int n0, const int n1,
                             std::vector<std::complex<double>> complex_vector);
 
 void plan_ifftw_nwt(const int n0, const int n1,
-                    std::vector<fftw_plan> plan_vector, double *in,
+                    std::vector<fftw_plan> &plan_vector, double *in,
                     double *in_sin, double *in_y, const planner_flags wisdom);
 
 template <typename VT>

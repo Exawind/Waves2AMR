@@ -67,7 +67,7 @@ modes_hosgrid::plan_ifftw(const int n0, const int n1, fftw_complex *in,
 }
 
 void modes_hosgrid::plan_ifftw_nwt(
-    const int n0, const int n1, std::vector<fftw_plan> plan_vector, double *in,
+    const int n0, const int n1, std::vector<fftw_plan> &plan_vector, double *in,
     double *in_sin, double *in_y,
     const planner_flags wisdom = planner_flags::patient) {
   unsigned int flag;
@@ -90,31 +90,31 @@ void modes_hosgrid::plan_ifftw_nwt(
     std::exit(1);
   }
   // Output array is used for planning (except for FFTW_ESTIMATE)
-  double out[n0][n1];
-  double out_sin[n0][n1 - 2];
-  double out_y[n0];
+  double out[n0 * n1];
+  double out_sin[n0 * (n1 - 2)];
   if (n0 == 1) {
     // CC
     plan_vector.emplace_back(
-        fftw_plan_r2r_1d(n1, in, &out[0][0], FFTW_REDFT00, flag));
+        fftw_plan_r2r_1d(n1, in, &out[0], FFTW_REDFT00, flag));
     // SC
     plan_vector.emplace_back(
-        fftw_plan_r2r_1d(n1 - 2, in_sin, &out_sin[0][0], FFTW_RODFT00, flag));
+        fftw_plan_r2r_1d(n1 - 2, in_sin, &out_sin[0], FFTW_RODFT00, flag));
     // None for CS, SS, Cy, Sy
 
   } else {
+    double out_y[n0];
     // CC
-    plan_vector.emplace_back(fftw_plan_r2r_2d(
-        n0, n1, in, &out[0][0], FFTW_REDFT00, FFTW_REDFT00, flag));
+    plan_vector.emplace_back(fftw_plan_r2r_2d(n0, n1, in, &out[0], FFTW_REDFT00,
+                                              FFTW_REDFT00, flag));
     // SC
     plan_vector.emplace_back(fftw_plan_r2r_2d(
-        n0, n1 - 2, in_sin, &out_sin[0][0], FFTW_RODFT00, FFTW_REDFT00, flag));
+        n0, n1 - 2, in_sin, &out_sin[0], FFTW_RODFT00, FFTW_REDFT00, flag));
     // CS
     plan_vector.emplace_back(fftw_plan_r2r_2d(
-        n0 - 2, n1 - 2, in + 1, &out[1][0], FFTW_REDFT00, FFTW_RODFT00, flag));
+        n0 - 2, n1 - 2, in + 1, &out[1], FFTW_REDFT00, FFTW_RODFT00, flag));
     // SS
     plan_vector.emplace_back(fftw_plan_r2r_2d(n0 - 2, n1 - 2, in_sin + 1,
-                                              &out_sin[1][0], FFTW_RODFT00,
+                                              &out_sin[1], FFTW_RODFT00,
                                               FFTW_RODFT00, flag));
     // Cy
     plan_vector.emplace_back(
@@ -604,7 +604,7 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_x,
 
   // Select plan
   int iplan = 0;
-  if (n1 == 1) {
+  if (n0 == 1) {
     if (cos_x) {
       iplan = 0; // CC
     } else {
@@ -623,31 +623,37 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_x,
   }
 
   // Modify modes with conversion coefficients
-  for (int ix = 0; ix < n0; ++ix) {
-    for (int iy = 0; iy < n1; ++iy) {
-      const int idx = ix * n1 + iy;
-      const double f2s = (iy == 0 ? 1.0 : 0.5);
+  // Grid2Grid fftwHOSNWT.inc, lines 138-141, 266
+  for (int iy = 0; iy < n0; ++iy) {
+    for (int ix = 0; ix < n1; ++ix) {
+      const int idx = iy * n1 + ix;
+      double f2s = ((ix == 0 || ix == n1 - 1) ? 1.0 : 0.5);
+      f2s *= (n0 != 1 && (iy != 0 && iy != n0 - 1)) ? 0.5 : 1.0;
       f_in[idx] *= f2s;
     }
-    if (n1 != 1 && !cos_y) {
-      f_in[ix * n1 + 0] = 0.;
-      f_in[ix * n1 + n1 - 1] = 0.;
+  }
+  // Grid2Grid fftwHOSNWT.inc, lines 281-284
+  for (int ix = 0; ix < n1; ++ix) {
+    if (n0 != 1 && !cos_y) {
+      f_in[0 * n1 + ix] = 0.;
+      f_in[(n0 - 1) * n1 + ix] = 0.;
     }
   }
   // Perform fft
   fftw_execute_r2r(p_vector[iplan], f_in, sp_out);
 
+  // Grid2Grid fftwHOSNWT.inc, lines 289-298
   if (!cos_x) {
-    for (int iy = 0; iy < n1; ++iy) {
-      sp_out[0 * n1 + iy] = 0.;
-      sp_out[(n0 - 1) * n1 + iy] = 0.;
+    for (int iy = 0; iy < n0; ++iy) {
+      sp_out[iy * n1 + 0] = 0.;
+      // Copy from out_sin ??
+      sp_out[iy * n1 + (n1 - 1)] = 0.;
     }
   }
-
-  if (n1 != 1 && !cos_y) {
-    for (int ix = 0; ix < n0; ++ix) {
-      sp_out[ix * n1 + 0] = 0.;
-      sp_out[ix * n1 + n1 - 1] = 0.;
+  if (n0 != 1 && !cos_y) {
+    for (int ix = 0; ix < n1; ++ix) {
+      sp_out[0 * n1 + ix] = 0.;
+      sp_out[(n0 - 1) * n1 + ix] = 0.;
     }
   }
 }

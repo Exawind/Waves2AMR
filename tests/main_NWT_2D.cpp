@@ -80,13 +80,15 @@ int main(int argc, char *argv[]) {
   // Create vector of multifab to represent part of AMR-Wind mesh
   // This part of the mesh is what current processor has access to
   int nx_box = 8;
-  amrex::Box localbox0(amrex::IntVect{0, 0, 3 * nx_box},
-                       amrex::IntVect{nx_box - 1, nx_box - 1, 4 * nx_box - 1});
+  amrex::Box localbox0(amrex::IntVect{0, 0, nx_box},
+                       amrex::IntVect{nx_box - 1, nx_box - 1, 2 * nx_box - 1});
   amrex::BoxArray ba0(localbox0);
   amrex::DistributionMapping dm0{ba0};
   amrex::Box localbox1(
-      amrex::IntVect{0, 0, 2 * 3 * nx_box},
-      amrex::IntVect{2 * nx_box - 1, 2 * nx_box - 1, 2 * 4 * nx_box - 1});
+      amrex::IntVect{0, 0, 2 * nx_box},
+      amrex::IntVect{2 * nx_box - 1, 2 * nx_box - 1, 2 * 2 * nx_box - 1});
+  std::cout << "nz for boxes " << nx_box << " " << 2 * nx_box - 1 << " "
+            << 2 * 2 * nx_box - 1 << std::endl;
   amrex::BoxArray ba1(localbox1);
   amrex::DistributionMapping dm1{ba1};
   const int ncomp = 3;
@@ -153,9 +155,9 @@ int main(int argc, char *argv[]) {
     // Get sample height
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
-    modes_hosgrid::populate_hos_vel(
-        n0, n1, xlen, ylen, ht, dimL, dimT, mX, mY, mZ, plan_vector,
-        u_modes, v_modes, w_modes, hos_u_vec, hos_v_vec, hos_w_vec, indv);
+    modes_hosgrid::populate_hos_vel(n0, n1, xlen, ylen, ht, dimL, dimT, mX, mY,
+                                    mZ, plan_vector, u_modes, v_modes, w_modes,
+                                    hos_u_vec, hos_v_vec, hos_w_vec, indv);
     indv += n0 * n1;
   }
 
