@@ -44,6 +44,10 @@ int main(int argc, char *argv[]) {
   auto u_modes = modes_hosgrid::allocate_real(n0, n1);
   auto v_modes = modes_hosgrid::allocate_real(n0, n1);
   auto w_modes = modes_hosgrid::allocate_real(n0, n1);
+  // Additional modes
+  auto au_modes = modes_hosgrid::allocate_real(n0, n2);
+  auto av_modes = modes_hosgrid::allocate_real(n0, n2);
+  auto aw_modes = modes_hosgrid::allocate_real(n0, n2);
 
   // --- Workflow for AMR-Wind --- //
   // Create heights where velocity will be sampled
@@ -155,8 +159,9 @@ int main(int argc, char *argv[]) {
     // Get sample height
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
-    modes_hosgrid::populate_hos_vel(n0, n1, xlen, ylen, ht, dimL, dimT, mX, mY,
-                                    mZ, plan_vector, u_modes, v_modes, w_modes,
+    modes_hosgrid::populate_hos_vel(n0, n1, n2, xlen, ylen, ht, dimL, dimT, mX,
+                                    mY, mZ, mAdd, plan_vector, u_modes, v_modes,
+                                    w_modes, au_modes, av_modes, aw_modes,
                                     hos_u_vec, hos_v_vec, hos_w_vec, indv);
     indv += n0 * n1;
   }
@@ -173,12 +178,12 @@ int main(int argc, char *argv[]) {
       hos_v_vec, hos_w_vec, velocity_field, geom_all);
 
   // Try to get next timestep (not available)
-  bool readflag = rmodes.get_data(2.0 * dt_out, mX, mY, mZ, mFS);
+  bool readflag = rmodes.get_data(20.0 * dt_out, mX, mY, mZ, mFS, mAdd);
   if (!readflag) {
     amrex::Print() << "Data at time " << 2.0 * dt_out
                    << " not available, looping back to initial time " << 0
                    << ".\n";
-    readflag = rmodes.get_data(0.0, mX, mY, mZ, mFS);
+    readflag = rmodes.get_data(0.0, mX, mY, mZ, mFS, mAdd);
     if (readflag) {
       amrex::Print() << "Data read at time " << 0 << " successful.\n";
     }
