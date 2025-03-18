@@ -7,9 +7,10 @@ int main(int argc, char *argv[]) {
   // Name of modes file
   std::string fname = "../tests/nwt_2D_modes_HOS_SWENSE.dat";
   // Initialize mode reader and dimensionalize params
-  ReadModes rmodes(fname, false);
+  ReadModes<double> rmodes(fname, false, false);
   int n0 = rmodes.get_first_dimension();
   int n1 = rmodes.get_second_dimension();
+  int n3 = rmodes.get_third_dimension();
   double depth = rmodes.get_depth();
   double xlen = rmodes.get_xlen();
   double ylen = rmodes.get_ylen();
@@ -22,27 +23,25 @@ int main(int argc, char *argv[]) {
   // Initialize variables to store modes
   int vsize = rmodes.get_vector_size();
   double initval = 0.0;
-  std::vector<std::complex<double>> mX(vsize, initval);
-  std::vector<std::complex<double>> mY(vsize, initval);
-  std::vector<std::complex<double>> mZ(vsize, initval);
-  std::vector<std::complex<double>> mFS(vsize, initval);
+  std::vector<double> mX(vsize, initval);
+  std::vector<double> mY(vsize, initval);
+  std::vector<double> mZ(vsize, initval);
+  std::vector<double> mFS(vsize, initval);
 
   // Timestep stored: t = dt
   double dt_out = rmodes.get_dtout();
   rmodes.get_data(dt_out, mX, mY, mZ, mFS);
 
   // Set up fftw_complex ptr for eta and get plan
-  fftw_plan plan;
-  fftw_complex *eta_modes =
-      modes_hosgrid::allocate_plan_copy(n0, n1, plan, mFS);
-
   std::vector<fftw_plan> plan_vector{};
-  plan_vector.push_back(plan);
+
+  double *eta_modes =
+      modes_hosgrid::allocate_plan_copy(n0, n1, plan_vector, mFS);
 
   // Allocate ptrs for velocity as well, copy is built-in later
-  auto u_modes = modes_hosgrid::allocate_complex(n0, n1);
-  auto v_modes = modes_hosgrid::allocate_complex(n0, n1);
-  auto w_modes = modes_hosgrid::allocate_complex(n0, n1);
+  auto u_modes = modes_hosgrid::allocate_real(n0, n1);
+  auto v_modes = modes_hosgrid::allocate_real(n0, n1);
+  auto w_modes = modes_hosgrid::allocate_real(n0, n1);
 
   // --- Workflow for AMR-Wind --- //
   // Create heights where velocity will be sampled
@@ -153,7 +152,7 @@ int main(int argc, char *argv[]) {
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
     modes_hosgrid::populate_hos_vel(
-        n0, n1, xlen, ylen, depth, ht, dimL, dimT, mX, mY, mZ, plan_vector,
+        n0, n1, xlen, ylen, ht, dimL, dimT, mX, mY, mZ, plan_vector,
         u_modes, v_modes, w_modes, hos_u_vec, hos_v_vec, hos_w_vec, indv);
     indv += n0 * n1;
   }
@@ -186,8 +185,10 @@ int main(int argc, char *argv[]) {
   delete[] u_modes;
   delete[] v_modes;
   delete[] w_modes;
+  for (int n = 0; n < plan_vector.size(); ++n) {
+    fftw_destroy_plan(plan_vector[n]);
+  }
   plan_vector.clear();
-  fftw_destroy_plan(plan);
 
   // Finalize AMReX
   amrex::Finalize();

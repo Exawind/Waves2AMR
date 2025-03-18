@@ -21,6 +21,23 @@ fftw_complex *modes_hosgrid::allocate_complex(const int n0, const int n1) {
   return a_ptr;
 }
 
+void modes_hosgrid::copy_real(const int n0, const int n1,
+                              std::vector<double> real_vector, double *ptr) {
+  for (int i = 0; i < n0; ++i) {
+    for (int j = 0; j < n1; ++j) {
+      const int idx = i * n1 + j;
+      ptr[idx] = real_vector[idx];
+    }
+  }
+}
+
+double *modes_hosgrid::allocate_real(const int n0, const int n1) {
+  // Allocate data needed for modes and create pointer
+  double *a_ptr = new double[n0 * n1];
+  // Return pointer to real data
+  return a_ptr;
+}
+
 fftw_plan
 modes_hosgrid::plan_ifftw(const int n0, const int n1, fftw_complex *in,
                           const planner_flags wisdom = planner_flags::patient) {
@@ -122,6 +139,21 @@ fftw_complex *modes_hosgrid::allocate_plan_copy(
   return a_ptr;
 }
 
+double *modes_hosgrid::allocate_plan_copy(const int n0, const int n1,
+                                          std::vector<fftw_plan> &p_vector,
+                                          std::vector<double> real_vector) {
+  // Allocate and get pointer
+  auto a_ptr = allocate_real(n0, n1);
+  auto a_sin_ptr = allocate_real(n0 - 2, n1);
+  auto a_y_ptr = allocate_real(1, n1);
+  // Create plan before data is initialized
+  plan_ifftw_nwt(n0, n1, p_vector, a_ptr, a_sin_ptr, a_y_ptr);
+  // Copy mode data from input vector
+  copy_real(n0, n1, real_vector, a_ptr);
+  // Return pointer to fftw_complex data
+  return a_ptr;
+}
+
 fftw_complex *
 modes_hosgrid::allocate_copy(const int n0, const int n1,
                              std::vector<std::complex<double>> complex_vector) {
@@ -138,12 +170,10 @@ void modes_hosgrid::populate_hos_eta(
     std::vector<fftw_plan> p_vector, fftw_complex *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
 
+  // Assert p_vector.size() == 1 !!
+
   // Get nondimensional interface height (eta)
-  if (p_vector.size() == 1) {
-    populate_hos_ocean_eta_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
-  } else {
-    populate_hos_nwt_eta_nondim(n0, n1, p_vector, eta_modes, HOS_eta);
-  }
+  populate_hos_ocean_eta_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
 
   // Dimensionalize the interface height
   dimensionalize_eta(dimL, HOS_eta);
@@ -165,9 +195,23 @@ void modes_hosgrid::populate_hos_ocean_eta_nondim(
   //   .. they are not intended to be reused ..   //
 }
 
+void modes_hosgrid::populate_hos_eta(
+    const int n0, const int n1, const double dimL,
+    std::vector<fftw_plan> p_vector, double *eta_modes,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
+
+  // Assert p_vector.size() > 1 !!
+
+  // Get nondimensional interface height (eta)
+  populate_hos_nwt_eta_nondim(n0, n1, p_vector, eta_modes, HOS_eta);
+
+  // Dimensionalize the interface height
+  dimensionalize_eta(dimL, HOS_eta);
+}
+
 void modes_hosgrid::populate_hos_nwt_eta_nondim(
     const int n0, const int n1, std::vector<fftw_plan> p_vector,
-    fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
+    double *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
   // Local array for output data
   double out[n0 * n1];
   // Perform complex-to-real (inverse) FFT (cos, cos)
@@ -209,17 +253,12 @@ void modes_hosgrid::populate_hos_vel(
   const amrex::Real nd_depth = depth / dimL;
   const amrex::Real nd_z = z / dimL;
 
+  // Assert that p_vector.size() == 1 !!
+
   // Get nondimensional velocities
-  if (p_vector.size() == 1) {
-    populate_hos_ocean_vel_nondim(n0, n1, nd_xlen, nd_ylen, nd_depth, nd_z,
-                                  mX_vector, mY_vector, mZ_vector, p_vector[0],
-                                  x_modes, y_modes, z_modes, HOS_u, HOS_v,
-                                  HOS_w, indv_start);
-  } else {
-    populate_hos_nwt_vel_nondim(
-        n0, n1, nd_xlen, nd_ylen, nd_z, mX_vector, mY_vector, mZ_vector,
-        p_vector, x_modes, y_modes, z_modes, HOS_u, HOS_v, HOS_w, indv_start);
-  }
+  populate_hos_ocean_vel_nondim(
+      n0, n1, nd_xlen, nd_ylen, nd_depth, nd_z, mX_vector, mY_vector, mZ_vector,
+      p_vector[0], x_modes, y_modes, z_modes, HOS_u, HOS_v, HOS_w, indv_start);
 
   // Dimensionalize velocities
   dimensionalize_vel(n0, n1, dimL, dimT, HOS_u, HOS_v, HOS_w, indv_start);
@@ -319,14 +358,37 @@ void modes_hosgrid::populate_hos_ocean_vel_nondim(
                    &HOS_w[indv_start]);
 }
 
+void modes_hosgrid::populate_hos_vel(
+    int n0, int n1, double xlen, double ylen, double z, const double dimL,
+    const double dimT, std::vector<double> mX_vector,
+    std::vector<double> mY_vector, std::vector<double> mZ_vector,
+    std::vector<fftw_plan> p_vector, double *x_modes, double *y_modes,
+    double *z_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_w, int indv_start) {
+
+  // Nondimensionalize lengths from AMR domain
+  const amrex::Real nd_xlen = xlen / dimL;
+  const amrex::Real nd_ylen = ylen / dimL;
+  const amrex::Real nd_z = z / dimL;
+
+  // Assert that p_vector.size() > 1 !!
+
+  // Get nondimensional velocities
+  populate_hos_nwt_vel_nondim(n0, n1, nd_xlen, nd_ylen, nd_z, mX_vector,
+                              mY_vector, mZ_vector, p_vector, x_modes, y_modes,
+                              z_modes, HOS_u, HOS_v, HOS_w, indv_start);
+
+  // Dimensionalize velocities
+  dimensionalize_vel(n0, n1, dimL, dimT, HOS_u, HOS_v, HOS_w, indv_start);
+}
+
 void modes_hosgrid::populate_hos_nwt_vel_nondim(
     const int n0, const int n1, const double nd_xlen, const double nd_ylen,
-    const double nd_z, std::vector<std::complex<double>> mX_vector,
-    std::vector<std::complex<double>> mY_vector,
-    std::vector<std::complex<double>> mZ_vector,
-    std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
-    fftw_complex *y_modes, fftw_complex *z_modes,
-    amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
+    const double nd_z, std::vector<double> mX_vector,
+    std::vector<double> mY_vector, std::vector<double> mZ_vector,
+    std::vector<fftw_plan> p_vector, double *x_modes, double *y_modes,
+    double *z_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_w, int indv_start) {
   // Everything within this routine is nondimensionalized, including xlen, ylen,
@@ -386,12 +448,9 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
       // Multiply modes by coefficients
       // hosProcedure is velocity, I think
       const int idx = ix * n1 + iy;
-      (x_modes[idx])[0] = coeff * mX_vector[idx].real();
-      (x_modes[idx])[1] = coeff * mX_vector[idx].imag();
-      (y_modes[idx])[0] = coeff * mY_vector[idx].real();
-      (y_modes[idx])[1] = coeff * mY_vector[idx].imag();
-      (z_modes[idx])[0] = coeff2 * mZ_vector[idx].real();
-      (z_modes[idx])[1] = coeff2 * mZ_vector[idx].imag();
+      x_modes[idx] = coeff * mX_vector[idx];
+      y_modes[idx] = coeff * mY_vector[idx];
+      z_modes[idx] = coeff2 * mZ_vector[idx];
     }
   }
 
@@ -405,12 +464,12 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
   do_ifftw(n0, n1, true, false, p_vector, y_modes, out_v.data()); // cos, sin
   do_ifftw(n0, n1, true, true, p_vector, z_modes, out_w.data());  // cos, cos
 
-  /*// Include additional modes for wavemaker
+  /* // Include additional modes for wavemaker
   if (n_add > 0) {
     populate_additional_hos_nwt_vel_nondim(
         n0, n1, n_add, nd_xlen, nd_ylen, nd_z, add_modes_vec, p_vector,
         ax_modes, ay_modes, az_modes, out_u, out_v, out_w);
-  }*/
+  } */
 
   // Copy to output vectors
   amrex::Gpu::copy(amrex::Gpu::hostToDevice, out_u.begin(), out_u.end(),
@@ -425,12 +484,10 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
 
 void modes_hosgrid::populate_additional_hos_nwt_vel_nondim(
     const int n0, const int n1, const int n_add, const double nd_xlen,
-    const double nd_ylen, const double nd_z,
-    std::vector<std::complex<double>> add_modes_vec,
-    std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
-    fftw_complex *y_modes, fftw_complex *z_modes,
-    amrex::Vector<amrex::Real> &nwt_u, amrex::Vector<amrex::Real> &nwt_v,
-    amrex::Vector<amrex::Real> &nwt_w) {
+    const double nd_ylen, const double nd_z, std::vector<double> add_modes_vec,
+    std::vector<fftw_plan> p_vector, double *x_modes, double *y_modes,
+    double *z_modes, amrex::Vector<amrex::Real> &nwt_u,
+    amrex::Vector<amrex::Real> &nwt_v, amrex::Vector<amrex::Real> &nwt_w) {
 
   // Reused constants
   constexpr int l_add = 2;
@@ -449,12 +506,9 @@ void modes_hosgrid::populate_additional_hos_nwt_vel_nondim(
       const double ky = pi_ylen * (iy - 1.);
 
       // Start modes at 0 to accumulate
-      (x_modes[iy])[0] = 0.;
-      (x_modes[iy])[1] = 0.;
-      (y_modes[iy])[0] = 0.;
-      (y_modes[iy])[1] = 0.;
-      (z_modes[iy])[0] = 0.;
-      (z_modes[iy])[1] = 0.;
+      x_modes[iy] = 0.;
+      y_modes[iy] = 0.;
+      z_modes[iy] = 0.;
 
       for (int ia = 0; ia < n_add; ++ia) {
 
@@ -494,12 +548,9 @@ void modes_hosgrid::populate_additional_hos_nwt_vel_nondim(
         const double coeff4 = coskx_add * kycsh_add_x;
 
         const int idx = iy * n_add + ia;
-        (x_modes[iy])[0] -= (add_modes_vec[idx]).real() * coeff3;
-        (x_modes[iy])[1] -= (add_modes_vec[idx]).imag() * coeff3;
-        (y_modes[iy])[0] -= (add_modes_vec[idx]).real() * coeff4;
-        (y_modes[iy])[1] -= (add_modes_vec[idx]).imag() * coeff4;
-        (z_modes[iy])[0] -= (add_modes_vec[idx]).real() * coeff2;
-        (z_modes[iy])[1] -= (add_modes_vec[idx]).imag() * coeff2;
+        x_modes[iy] -= add_modes_vec[idx] * coeff3;
+        y_modes[iy] -= add_modes_vec[idx] * coeff4;
+        z_modes[iy] -= add_modes_vec[idx] * coeff2;
       }
     }
 
@@ -551,7 +602,7 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, fftw_plan p,
 
 void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_x,
                              const bool cos_y, std::vector<fftw_plan> p_vector,
-                             fftw_complex *f_in, double *sp_out) {
+                             double *f_in, double *sp_out) {
 
   // Select plan
   int iplan = 0;
@@ -578,18 +629,15 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_x,
     for (int iy = 0; iy < n1; ++iy) {
       const int idx = ix * n1 + iy;
       const double f2s = (iy == 0 ? 1.0 : 0.5);
-      (f_in[idx])[0] *= f2s;
-      (f_in[idx])[1] *= f2s;
+      f_in[idx] *= f2s;
     }
     if (n1 != 1 && !cos_y) {
-      (f_in[ix * n1 + 0])[0] = 0.;
-      (f_in[ix * n1 + 0])[1] = 0.;
-      (f_in[ix * n1 + n1 - 1])[0] = 0.;
-      (f_in[ix * n1 + n1 - 1])[1] = 0.;
+      f_in[ix * n1 + 0] = 0.;
+      f_in[ix * n1 + n1 - 1] = 0.;
     }
   }
   // Perform fft
-  fftw_execute_dft_c2r(p_vector[iplan], f_in, sp_out);
+  fftw_execute_r2r(p_vector[iplan], f_in, sp_out);
 
   if (!cos_x) {
     for (int iy = 0; iy < n1; ++iy) {
@@ -607,8 +655,8 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_x,
 }
 
 void modes_hosgrid::do_ifftw(const int n1, const bool cos_y,
-                             std::vector<fftw_plan> p_vector,
-                             fftw_complex *f_in, double *sp_out) {
+                             std::vector<fftw_plan> p_vector, double *f_in,
+                             double *sp_out) {
   // Select plan
   int iplan = 0;
   if (cos_y) {
@@ -620,18 +668,15 @@ void modes_hosgrid::do_ifftw(const int n1, const bool cos_y,
   // Modify modes with conversion coefficients
   for (int iy = 0; iy < n1; ++iy) {
     const double f2s = ((iy == 0 || iy == n1 - 1) ? 1.0 : 0.5);
-    (f_in[iy])[0] *= f2s;
-    (f_in[iy])[1] *= f2s;
+    f_in[iy] *= f2s;
   }
   if (!cos_y) {
-    (f_in[0])[0] = 0.;
-    (f_in[0])[1] = 0.;
-    (f_in[n1 - 1])[0] = 0.;
-    (f_in[n1 - 1])[1] = 0.;
+    f_in[0] = 0.;
+    f_in[n1 - 1] = 0.;
   }
 
   // Perform fft
-  fftw_execute_dft_c2r(p_vector[iplan], f_in, sp_out);
+  fftw_execute_r2r(p_vector[iplan], f_in, sp_out);
 
   if (!cos_y) {
     sp_out[0] = 0.;

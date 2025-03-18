@@ -7,8 +7,7 @@
 #include <string>
 #include <vector>
 
-template <typename VT>
-class ReadModes {
+template <typename VT> class ReadModes {
 public:
   ReadModes(std::string, bool is_ocean = true, bool allmodes = false);
 
@@ -25,41 +24,26 @@ public:
 
   bool read_data(int itime);
 
-  void output_data(std::vector<VT> &v1,
-                   std::vector<VT> &v2,
-                   std::vector<VT> &v3,
-                   std::vector<VT> &v4,
-                   std::vector<VT> &v5,
-                   std::vector<VT> &v6);
+  void output_data(std::vector<VT> &v1, std::vector<VT> &v2,
+                   std::vector<VT> &v3, std::vector<VT> &v4,
+                   std::vector<VT> &v5, std::vector<VT> &v6);
 
-  bool get_data(double time, std::vector<VT> &mX,
-                std::vector<VT> &mY,
-                std::vector<VT> &mZ,
-                std::vector<VT> &mT,
-                std::vector<VT> &mFS,
+  bool get_data(double time, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mT, std::vector<VT> &mFS,
                 std::vector<VT> &mFST);
 
-  bool get_data(int itime, std::vector<VT> &mX,
-                std::vector<VT> &mY,
-                std::vector<VT> &mZ,
-                std::vector<VT> &mT,
-                std::vector<VT> &mFS,
+  bool get_data(int itime, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mT, std::vector<VT> &mFS,
                 std::vector<VT> &mFST);
 
-  void output_data(std::vector<VT> &v1,
-                   std::vector<VT> &v2,
-                   std::vector<VT> &v3,
-                   std::vector<VT> &v4);
+  void output_data(std::vector<VT> &v1, std::vector<VT> &v2,
+                   std::vector<VT> &v3, std::vector<VT> &v4);
 
-  bool get_data(double time, std::vector<VT> &mX,
-                std::vector<VT> &mY,
-                std::vector<VT> &mZ,
-                std::vector<VT> &mFS);
+  bool get_data(double time, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mFS);
 
-  bool get_data(int itime, std::vector<VT> &mX,
-                std::vector<VT> &mY,
-                std::vector<VT> &mZ,
-                std::vector<VT> &mFS);
+  bool get_data(int itime, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mFS);
 
   // Calculate size of data for each mode variable (# of complex values)
   int get_vector_size() { return vec_size; }
@@ -74,10 +58,12 @@ public:
   // Output functions for use
   int get_first_dimension() { return (from_fortran ? n2 : n1); }
   int get_second_dimension() { return (from_fortran ? n1 : n2); }
+  int get_third_dimension() { return n3; }
 
   // Output functions of parameters
   int get_n1() { return n1; }
   int get_n2() { return n2; }
+  int get_n3() { return n3; }
   double get_dtout() { return dt_out; }
   double get_f() { return f_out; }
   double get_Tstop() { return T_stop; }
@@ -109,16 +95,15 @@ private:
   std::string m_filename;
 
   // HOS data dimensions
-  int n1, n2;
+  int n1, n2, n3;
   double dt_out, f_out, T_stop, xlen, ylen, depth, g, L, T;
 
   // HOS data vectors
-  std::vector<VT> modeX, modeY, modeZ, modeT, modeFS, modeFST;
-  
+  std::vector<VT> modeX, modeY, modeZ, modeT, modeFS, modeFST, modeAdd,
+      modeAddT;
+
   // HOS working dimensions
   int n1o2p1; // Ocean only
-  int nX;     // NWT only
-  int nYmode;
   int vec_size;
 
   // Current time index
