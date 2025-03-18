@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
   ReadModes<double> rmodes(fname, false, false);
   int n0 = rmodes.get_first_dimension();
   int n1 = rmodes.get_second_dimension();
-  int n3 = rmodes.get_third_dimension();
+  int n2 = rmodes.get_third_dimension();
   double depth = rmodes.get_depth();
   double xlen = rmodes.get_xlen();
   double ylen = rmodes.get_ylen();
@@ -22,12 +22,13 @@ int main(int argc, char *argv[]) {
 
   // Initialize variables to store modes
   int vsize = rmodes.get_vector_size();
+  int vasize = rmodes.get_addl_vector_size();
   double initval = 0.0;
   std::vector<double> mX(vsize, initval);
   std::vector<double> mY(vsize, initval);
   std::vector<double> mZ(vsize, initval);
   std::vector<double> mFS(vsize, initval);
-  std::vector<double> mAdd(vsize, initval);
+  std::vector<double> mAdd(vasize, initval);
 
   // Timestep stored: t = dt
   double dt_out = rmodes.get_dtout();
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
   amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> probhi{28., 4., 1.4};
   amrex::RealBox rbox(problo.data(), probhi.data());
   // Domain boxes for each level
-  int nxg0 = 128;
+  int nxg0 = 64;
   int nyg0 = 16;
   int nzg0 = 16;
   amrex::Box domainbox0(amrex::IntVect{0, 0, 0},

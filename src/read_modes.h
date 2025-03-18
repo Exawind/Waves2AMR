@@ -74,6 +74,7 @@ public:
 
   // Calculate size of data for each mode variable (# of complex values)
   int get_vector_size() { return vec_size; }
+  int get_addl_vector_size() { return vec_add_size; }
 
   // Convert time to timestep
   int time2step(const double time, const int itime_guess);
@@ -130,8 +131,9 @@ private:
       modeAddT;
 
   // HOS working dimensions
-  int n1o2p1; // Ocean only
   int vec_size;
+  int n1o2p1; // Ocean only
+  int vec_add_size; // NWT only
 
   // Current time index
   int itime_now;

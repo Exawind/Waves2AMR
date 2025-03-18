@@ -91,16 +91,15 @@ void modes_hosgrid::plan_ifftw_nwt(
   }
   // Output array is used for planning (except for FFTW_ESTIMATE)
   double out[n0][n1];
-  double out_sin[n0 - 2][n1];
-  double out_y[n1];
-  // Very confused on the importance of indexing here??
-  if (n1 == 1) {
+  double out_sin[n0][n1 - 2];
+  double out_y[n0];
+  if (n0 == 1) {
     // CC
     plan_vector.emplace_back(
-        fftw_plan_r2r_1d(n0, in, &out[0][0], FFTW_REDFT00, flag));
+        fftw_plan_r2r_1d(n1, in, &out[0][0], FFTW_REDFT00, flag));
     // SC
     plan_vector.emplace_back(
-        fftw_plan_r2r_1d(n0 - 2, in_sin, &out_sin[0][0], FFTW_RODFT00, flag));
+        fftw_plan_r2r_1d(n1 - 2, in_sin, &out_sin[0][0], FFTW_RODFT00, flag));
     // None for CS, SS, Cy, Sy
 
   } else {
@@ -109,20 +108,20 @@ void modes_hosgrid::plan_ifftw_nwt(
         n0, n1, in, &out[0][0], FFTW_REDFT00, FFTW_REDFT00, flag));
     // SC
     plan_vector.emplace_back(fftw_plan_r2r_2d(
-        n0 - 2, n1, in_sin, &out_sin[0][0], FFTW_RODFT00, FFTW_REDFT00, flag));
+        n0, n1 - 2, in_sin, &out_sin[0][0], FFTW_RODFT00, FFTW_REDFT00, flag));
     // CS
     plan_vector.emplace_back(fftw_plan_r2r_2d(
-        n0, n1 - 2, in + n0, &out[0][1], FFTW_REDFT00, FFTW_RODFT00, flag));
+        n0 - 2, n1 - 2, in + 1, &out[1][0], FFTW_REDFT00, FFTW_RODFT00, flag));
     // SS
-    plan_vector.emplace_back(fftw_plan_r2r_2d(n0 - 2, n1 - 2, in_sin + n0 - 2,
-                                              &out_sin[0][1], FFTW_RODFT00,
+    plan_vector.emplace_back(fftw_plan_r2r_2d(n0 - 2, n1 - 2, in_sin + 1,
+                                              &out_sin[1][0], FFTW_RODFT00,
                                               FFTW_RODFT00, flag));
     // Cy
     plan_vector.emplace_back(
-        fftw_plan_r2r_1d(n1, in_y, &out_y[0], FFTW_REDFT00, flag));
+        fftw_plan_r2r_1d(n0, in_y, &out_y[0], FFTW_REDFT00, flag));
     // Sy
     plan_vector.emplace_back(
-        fftw_plan_r2r_1d(n1 - 2, in_y + 1, &out_y[1], FFTW_RODFT00, flag));
+        fftw_plan_r2r_1d(n0 - 2, in_y + 1, &out_y[1], FFTW_RODFT00, flag));
   }
 }
 
@@ -142,15 +141,13 @@ fftw_complex *modes_hosgrid::allocate_plan_copy(
 double *modes_hosgrid::allocate_plan_copy(const int n0, const int n1,
                                           std::vector<fftw_plan> &p_vector,
                                           std::vector<double> real_vector) {
-  // Allocate and get pointer
+  // n0 is outer dimension, n1 is inner dimension
+  // assuming data comes from fortran, that means n0 is y, n1 is x
   auto a_ptr = allocate_real(n0, n1);
-  auto a_sin_ptr = allocate_real(n0 - 2, n1);
-  auto a_y_ptr = allocate_real(1, n1);
-  // Create plan before data is initialized
+  auto a_sin_ptr = allocate_real(n0, n1 - 2);
+  auto a_y_ptr = allocate_real(n0, 0);
   plan_ifftw_nwt(n0, n1, p_vector, a_ptr, a_sin_ptr, a_y_ptr);
-  // Copy mode data from input vector
   copy_real(n0, n1, real_vector, a_ptr);
-  // Return pointer to fftw_complex data
   return a_ptr;
 }
 
@@ -176,7 +173,7 @@ void modes_hosgrid::populate_hos_eta(
   populate_hos_ocean_eta_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
 
   // Dimensionalize the interface height
-  dimensionalize_eta(dimL, HOS_eta);
+  dimensionalize_eta(dimL, HOS_eta); // need to check!!
 }
 
 void modes_hosgrid::populate_hos_ocean_eta_nondim(
@@ -380,7 +377,8 @@ void modes_hosgrid::populate_hos_vel(
                               z_modes, HOS_u, HOS_v, HOS_w, indv_start);
 
   // Dimensionalize velocities
-  dimensionalize_vel(n0, n1, dimL, dimT, HOS_u, HOS_v, HOS_w, indv_start);
+  dimensionalize_vel(n0, n1, dimL, dimT, HOS_u, HOS_v, HOS_w,
+                     indv_start); // need to check!!
 }
 
 void modes_hosgrid::populate_hos_nwt_vel_nondim(

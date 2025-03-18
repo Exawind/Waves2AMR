@@ -27,14 +27,16 @@ ReadModes<VT>::ReadModes(std::string filename, bool is_ocean, bool allmodes)
   modeZ.resize(vec_size);
   modeFS.resize(vec_size);
   if (!is_ocean) {
-    modeAdd.resize(vec_size);
+    // Grid2Grid hosNWTMode.inc, line 37
+    vec_add_size = n2 * n3;
+    modeAdd.resize(vec_add_size);
   }
   // These modes are optional
   if (allmodes) {
     modeT.resize(vec_size);
     modeFST.resize(vec_size);
     if (!is_ocean) {
-      modeAddT.resize(vec_size);
+      modeAddT.resize(vec_add_size);
     }
   }
 

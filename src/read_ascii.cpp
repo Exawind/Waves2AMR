@@ -238,6 +238,7 @@ template <> bool ReadModes<double>::ascii_read_full(const int itime) {
   fname << m_filename;
   std::ifstream is(fname.str());
   // For now, assume "extraInterpolationNumber" is 1
+  std::cout << "inside ReadModes<double>::ascii_read_full\n";
 
   // Skip previous timesteps
   // -- each entry is real and 8 vars
@@ -266,6 +267,8 @@ template <> bool ReadModes<double>::ascii_read_full(const int itime) {
   }
   // Read modes
   int idx = 0;
+  int idx3 = 0;
+  double buf_r;
   for (int i2 = 0; i2 < n2; ++i2) {
 
     for (int i1 = i1_init; i1 < n1; ++i1) {
@@ -287,12 +290,21 @@ template <> bool ReadModes<double>::ascii_read_full(const int itime) {
       is >> modeFST[idx + i1];
     }
     for (int i1 = 0; i1 < n1; ++i1) {
-      is >> modeAdd[idx + i1];
+      if (i1 < n3) {
+        is >> modeAdd[idx3 + i1];
+      } else {
+        is >> buf_r;
+      }
     }
     for (int i1 = 0; i1 < n1; ++i1) {
-      is >> modeAddT[idx + i1];
+      if (i1 < n3) {
+        is >> modeAddT[idx3 + i1];
+      } else {
+        is >> buf_r;
+      }
     }
     idx += n1;
+    idx3 += n3;
     i1_init = 0;
     // Check for eof, exit early if found
     eof_not_found = eof_not_found && !is.eof();
@@ -309,6 +321,7 @@ template <> bool ReadModes<double>::ascii_read_brief(const int itime) {
   std::stringstream fname;
   fname << m_filename;
   std::ifstream is(fname.str());
+
   // Skip previous timesteps
   // -- each entry is real and 8 vars
   // -- each number takes 18 spaces
@@ -336,6 +349,7 @@ template <> bool ReadModes<double>::ascii_read_brief(const int itime) {
   }
   // Read modes
   int idx = 0;
+  int idx3 = 0;
   double buf_r;
   for (int i2 = 0; i2 < n2; ++i2) {
 
@@ -360,13 +374,18 @@ template <> bool ReadModes<double>::ascii_read_brief(const int itime) {
       // Don't need FST
     }
     for (int i1 = 0; i1 < n1; ++i1) {
-      is >> modeAdd[idx + i1];
+      if (i1 < n3) {
+        is >> modeAdd[idx3 + i1];
+      } else {
+        is >> buf_r;
+      }
     }
     for (int i1 = 0; i1 < n1; ++i1) {
       is >> buf_r;
       // Don't need AddT
     }
     idx += n1;
+    idx3 += n3;
     i1_init = 0;
     // Check for eof, exit early if found
     eof_not_found = eof_not_found && !is.eof();
