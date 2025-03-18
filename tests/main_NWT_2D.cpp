@@ -27,10 +27,11 @@ int main(int argc, char *argv[]) {
   std::vector<double> mY(vsize, initval);
   std::vector<double> mZ(vsize, initval);
   std::vector<double> mFS(vsize, initval);
+  std::vector<double> mAdd(vsize, initval);
 
   // Timestep stored: t = dt
   double dt_out = rmodes.get_dtout();
-  rmodes.get_data(dt_out, mX, mY, mZ, mFS);
+  rmodes.get_data(dt_out, mX, mY, mZ, mFS, mAdd);
 
   // Set up fftw_complex ptr for eta and get plan
   std::vector<fftw_plan> plan_vector{};

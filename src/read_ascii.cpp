@@ -310,10 +310,11 @@ template <> bool ReadModes<double>::ascii_read_brief(const int itime) {
   fname << m_filename;
   std::ifstream is(fname.str());
   // Skip previous timesteps
-  // -- each entry is complex (2) and 6 vars
+  // -- each entry is real and 8 vars
   // -- each number takes 18 spaces
   // -- long long is to avoid overflow
-  is.ignore(18 * 6 * 2 * (long long)(vec_size * (itime + 1)));
+  // Grid2Grid hosNWT.inc, line 425 (recl * nrecl)
+  is.ignore(18 * 8 * (long long)(vec_size * (itime + 1)));
   // Check for eof, exit early if not found
   eof_not_found = eof_not_found && !is.eof();
   if (!eof_not_found) {
@@ -338,25 +339,25 @@ template <> bool ReadModes<double>::ascii_read_brief(const int itime) {
   double buf_r;
   for (int i2 = 0; i2 < n2; ++i2) {
 
-    for (int i1 = i1_init; i1 < n1o2p1; ++i1) {
+    for (int i1 = i1_init; i1 < n1; ++i1) {
       is >> modeX[idx + i1];
     }
-    for (int i1 = 0; i1 < n1o2p1; ++i1) {
+    for (int i1 = 0; i1 < n1; ++i1) {
       is >> modeY[idx + i1];
     }
-    for (int i1 = 0; i1 < n1o2p1; ++i1) {
+    for (int i1 = 0; i1 < n1; ++i1) {
       is >> modeZ[idx + i1];
     }
-    for (int i1 = 0; i1 < n1o2p1; ++i1) {
+    for (int i1 = 0; i1 < n1; ++i1) {
       is >> buf_r;
       // Don't need T
     }
-    for (int i1 = 0; i1 < n1o2p1; ++i1) {
+    for (int i1 = 0; i1 < n1; ++i1) {
       is >> modeFS[idx + i1];
     }
-    for (int i1 = 0; i1 < n1o2p1; ++i1) {
+    for (int i1 = 0; i1 < n1; ++i1) {
       is >> buf_r;
-      // Don't need T
+      // Don't need FST
     }
     for (int i1 = 0; i1 < n1; ++i1) {
       is >> modeAdd[idx + i1];

@@ -45,6 +45,33 @@ public:
   bool get_data(int itime, std::vector<VT> &mX, std::vector<VT> &mY,
                 std::vector<VT> &mZ, std::vector<VT> &mFS);
 
+  void output_data(std::vector<VT> &v1, std::vector<VT> &v2,
+                   std::vector<VT> &v3, std::vector<VT> &v4,
+                   std::vector<VT> &v5, std::vector<VT> &v6,
+                   std::vector<VT> &v7, std::vector<VT> &v8);
+
+  bool get_data(double time, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mT, std::vector<VT> &mFS,
+                std::vector<VT> &mFST, std::vector<VT> &mAdd,
+                std::vector<VT> &mAddT);
+
+  bool get_data(int itime, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mT, std::vector<VT> &mFS,
+                std::vector<VT> &mFST, std::vector<VT> &mAdd,
+                std::vector<VT> &mAddT);
+
+  void output_data(std::vector<VT> &v1, std::vector<VT> &v2,
+                   std::vector<VT> &v3, std::vector<VT> &v4,
+                   std::vector<VT> &v5);
+
+  bool get_data(double time, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mFS,
+                std::vector<VT> &mAdd);
+
+  bool get_data(int itime, std::vector<VT> &mX, std::vector<VT> &mY,
+                std::vector<VT> &mZ, std::vector<VT> &mFS,
+                std::vector<VT> &mAdd);
+
   // Calculate size of data for each mode variable (# of complex values)
   int get_vector_size() { return vec_size; }
 

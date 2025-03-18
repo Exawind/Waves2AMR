@@ -26,10 +26,16 @@ ReadModes<VT>::ReadModes(std::string filename, bool is_ocean, bool allmodes)
   modeY.resize(vec_size);
   modeZ.resize(vec_size);
   modeFS.resize(vec_size);
+  if (!is_ocean) {
+    modeAdd.resize(vec_size);
+  }
   // These modes are optional
   if (allmodes) {
     modeT.resize(vec_size);
     modeFST.resize(vec_size);
+    if (!is_ocean) {
+      modeAddT.resize(vec_size);
+    }
   }
 
   // Dimensionalize all nondim scalar quantities
@@ -89,10 +95,16 @@ bool ReadModes<VT>::initialize(std::string filename, bool is_ocean,
   modeY.resize(vec_size);
   modeZ.resize(vec_size);
   modeFS.resize(vec_size);
+  if (!is_ocean) {
+    modeAdd.resize(vec_size);
+  }
   // These modes are optional
   if (allmodes) {
     modeT.resize(vec_size);
     modeFST.resize(vec_size);
+    if (!is_ocean) {
+      modeAddT.resize(vec_size);
+    }
   }
 
   // Dimensionalize all nondim scalar quantities
@@ -219,6 +231,86 @@ bool ReadModes<VT>::get_data(int itime, std::vector<VT> &mX,
   auto flag = read_data(itime);
   // Copy data to output
   output_data(mX, mY, mZ, mFS);
+  // Pass read flag (for detecting EOF)
+  return flag;
+}
+
+template <typename VT>
+void ReadModes<VT>::output_data(std::vector<VT> &v1, std::vector<VT> &v2,
+                                std::vector<VT> &v3, std::vector<VT> &v4,
+                                std::vector<VT> &v5, std::vector<VT> &v6,
+                                std::vector<VT> &v7, std::vector<VT> &v8) {
+  // Copy class variables to input/output variables
+  std::copy(modeX.begin(), modeX.end(), v1.begin());
+  std::copy(modeY.begin(), modeY.end(), v2.begin());
+  std::copy(modeZ.begin(), modeZ.end(), v3.begin());
+  std::copy(modeT.begin(), modeT.end(), v4.begin());
+  std::copy(modeFS.begin(), modeFS.end(), v5.begin());
+  std::copy(modeFST.begin(), modeFST.end(), v6.begin());
+  std::copy(modeAdd.begin(), modeAdd.end(), v7.begin());
+  std::copy(modeAddT.begin(), modeAddT.end(), v8.begin());
+}
+
+template <typename VT>
+void ReadModes<VT>::output_data(std::vector<VT> &v1, std::vector<VT> &v2,
+                                std::vector<VT> &v3, std::vector<VT> &v4,
+                                std::vector<VT> &v5) {
+  // Copy class variables to input/output variables
+  std::copy(modeX.begin(), modeX.end(), v1.begin());
+  std::copy(modeY.begin(), modeY.end(), v2.begin());
+  std::copy(modeZ.begin(), modeZ.end(), v3.begin());
+  std::copy(modeFS.begin(), modeFS.end(), v4.begin());
+  std::copy(modeAdd.begin(), modeAdd.end(), v5.begin());
+}
+
+template <typename VT>
+bool ReadModes<VT>::get_data(double time, std::vector<VT> &mX,
+                             std::vector<VT> &mY, std::vector<VT> &mZ,
+                             std::vector<VT> &mT, std::vector<VT> &mFS,
+                             std::vector<VT> &mFST, std::vector<VT> &mAdd,
+                             std::vector<VT> &mAddT) {
+  // Read data
+  auto flag = read_data(time);
+  // Copy data to output
+  output_data(mX, mY, mZ, mT, mFS, mFST, mAdd, mAddT);
+  // Pass read flag (for detecting EOF)
+  return flag;
+}
+
+template <typename VT>
+bool ReadModes<VT>::get_data(int itime, std::vector<VT> &mX,
+                             std::vector<VT> &mY, std::vector<VT> &mZ,
+                             std::vector<VT> &mT, std::vector<VT> &mFS,
+                             std::vector<VT> &mFST, std::vector<VT> &mAdd,
+                             std::vector<VT> &mAddT) {
+  // Read data
+  auto flag = read_data(itime);
+  // Copy data to output
+  output_data(mX, mY, mZ, mT, mFS, mFST, mAdd, mAddT);
+  // Pass read flag (for detecting EOF)
+  return flag;
+}
+
+template <typename VT>
+bool ReadModes<VT>::get_data(double time, std::vector<VT> &mX,
+                             std::vector<VT> &mY, std::vector<VT> &mZ,
+                             std::vector<VT> &mFS, std::vector<VT> &mAdd) {
+  // Read data
+  auto flag = read_data(time);
+  // Copy data to output
+  output_data(mX, mY, mZ, mFS, mAdd);
+  // Pass read flag (for detecting EOF)
+  return flag;
+}
+
+template <typename VT>
+bool ReadModes<VT>::get_data(int itime, std::vector<VT> &mX,
+                             std::vector<VT> &mY, std::vector<VT> &mZ,
+                             std::vector<VT> &mFS, std::vector<VT> &mAdd) {
+  // Read data
+  auto flag = read_data(itime);
+  // Copy data to output
+  output_data(mX, mY, mZ, mFS, mAdd);
   // Pass read flag (for detecting EOF)
   return flag;
 }
