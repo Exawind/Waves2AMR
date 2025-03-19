@@ -16,7 +16,7 @@ public:
 
   ReadModes();
 
-  bool initialize(std::string, bool is_ocean = true, bool allmodes = false);
+  bool initialize(std::string, bool is_ocean, bool allmodes = false);
 
   void print_file_constants();
 

@@ -92,20 +92,21 @@ bool ReadModes<VT>::initialize(std::string filename, bool is_ocean,
 
   // Calculate size of mode vectors
   vec_size = n2 * (is_HOS_Ocean ? n1o2p1 : n1);
+  vec_add_size = n2 * n3;
 
   modeX.resize(vec_size);
   modeY.resize(vec_size);
   modeZ.resize(vec_size);
   modeFS.resize(vec_size);
   if (!is_ocean) {
-    modeAdd.resize(vec_size);
+    modeAdd.resize(vec_add_size);
   }
   // These modes are optional
   if (allmodes) {
     modeT.resize(vec_size);
     modeFST.resize(vec_size);
     if (!is_ocean) {
-      modeAddT.resize(vec_size);
+      modeAddT.resize(vec_add_size);
     }
   }
 

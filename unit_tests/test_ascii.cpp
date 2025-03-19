@@ -154,7 +154,7 @@ TEST_F(AsciiReadTest, InitEmptyConstructor) {
   // Read
   ReadModes<std::complex<double>> rmodes;
 
-  rmodes.initialize(fname);
+  rmodes.initialize(fname, true);
 
   EXPECT_EQ(rmodes.get_n1(), 64);
   EXPECT_EQ(rmodes.get_n2(), 64);
@@ -182,7 +182,7 @@ TEST_F(AsciiReadTest, InitializeFail) {
   // Read
   ReadModes<std::complex<double>> rmodes(fname);
 
-  EXPECT_DEATH(rmodes.initialize(fname);, "");
+  EXPECT_DEATH(rmodes.initialize(fname, true);, "");
 }
 
 TEST_F(AsciiReadTest, InitializeNoFile1) {
@@ -198,7 +198,7 @@ TEST_F(AsciiReadTest, InitializeNoFile2) {
   // Initialize with file that does not exist
   ReadModes<std::complex<double>> rmodes;
 
-  EXPECT_FALSE(rmodes.initialize(fname));
+  EXPECT_FALSE(rmodes.initialize(fname, true));
 }
 
 TEST_F(AsciiReadTest, ModesInit) {
