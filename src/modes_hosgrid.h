@@ -33,7 +33,7 @@ fftw_complex *allocate_copy(const int n0, const int n1,
 
 void plan_ifftw_nwt(const int n0, const int n1,
                     std::vector<fftw_plan> &plan_vector, double *in,
-                    double *in_sin, double *in_y, const planner_flags wisdom);
+                    const planner_flags wisdom);
 
 template <typename VT, typename PT>
 void populate_hos_eta(ReadModes<VT> rm_obj, std::vector<fftw_plan> p_vector,
@@ -152,11 +152,12 @@ void dimensionalize_vel(const int n0, const int n1, const double dimL,
 void do_ifftw(const int n0, const int n1, fftw_plan p, fftw_complex *f_in,
               double *sp_out);
 
-void do_ifftw(const int n0, const int n1, const bool cos_x, const bool cos_y,
-              std::vector<fftw_plan> p_vector, double *f_in, double *sp_out);
+void do_ifftw(const int n0, const int n1, const bool cos_y, const bool cos_x,
+              std::vector<fftw_plan> p_vector, double *f_in, double *sp_out,
+              double *f_work, double *sp_work);
 
 void do_ifftw(const int n0, const bool cos_y, std::vector<fftw_plan> p_vector,
-              double *f_in, double *sp_out);
+              double *f_in, double *sp_out, double *f_work, double *sp_work);
 
 } // namespace modes_hosgrid
 

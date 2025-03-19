@@ -566,7 +566,7 @@ void interp_to_mfab::interp_eta_to_levelset_multifab3D(
         j1 += (j1 >= spd_ny) ? -1 : 0;
       }
       // Form indices for 1D vector of 2D data
-      // Row-major is a consequence of performing 2D FFT in C++
+      // x indices are adjacent because data was read from fortran format
       const int idx00 = i0 + j0 * spd_nx;
       const int idx10 = i1 + j0 * spd_nx;
       const int idx01 = i0 + j1 * spd_nx;
