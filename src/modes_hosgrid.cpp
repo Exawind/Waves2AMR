@@ -410,9 +410,11 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
   const double pi_ylen = M_PI / nd_ylen;
   // Loop modes to modify them
   for (int iy = 0; iy < n0; ++iy) {
-    const double ky = pi_ylen * (iy - 1.);
+    // Grid2Grid hosNWT.inc, line 699, index conversion
+    const double ky = pi_ylen * iy;
     for (int ix = 0; ix < n1; ++ix) {
-      const double kx = pi_xlen * (ix - 1.);
+      // Grid2Grid hosNWT.inc, line 703, index conversion
+      const double kx = pi_xlen * ix;
 
       // Get wavenumber and depth-related quantities
       const double k = sqrt(kx * kx + ky * ky);
