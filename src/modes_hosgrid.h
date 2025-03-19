@@ -61,11 +61,22 @@ void dimensionalize_eta(const double dimL,
 
 template <typename VT>
 void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
-                      std::vector<std::complex<double>> mX_vector,
-                      std::vector<std::complex<double>> mY_vector,
-                      std::vector<std::complex<double>> mZ_vector,
+                      std::vector<VT> mX_vector, std::vector<VT> mY_vector,
+                      std::vector<VT> mZ_vector,
                       std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
                       fftw_complex *y_modes, fftw_complex *z_modes,
+                      amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
+                      amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
+                      amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
+                      int indv_start = 0);
+
+template <typename VT>
+void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
+                      std::vector<VT> mX_vector, std::vector<VT> mY_vector,
+                      std::vector<VT> mZ_vector, std::vector<VT> mAdd_vector,
+                      std::vector<fftw_plan> p_vector, double *x_modes,
+                      double *y_modes, double *z_modes, double *add_x_modes,
+                      double *add_y_modes, double *add_z_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_w,
