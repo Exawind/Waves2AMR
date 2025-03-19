@@ -145,7 +145,7 @@ double *modes_hosgrid::allocate_plan_copy(const int n0, const int n1,
   // assuming data comes from fortran, that means n0 is y, n1 is x
   auto a_ptr = allocate_real(n0, n1);
   auto a_sin_ptr = allocate_real(n0, n1 - 2);
-  auto a_y_ptr = allocate_real(n0, 0);
+  auto a_y_ptr = allocate_real(n0, 1);
   plan_ifftw_nwt(n0, n1, p_vector, a_ptr, a_sin_ptr, a_y_ptr);
   copy_real(n0, n1, real_vector, a_ptr);
   return a_ptr;
