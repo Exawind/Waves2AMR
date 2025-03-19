@@ -84,8 +84,10 @@ public:
   /* bool fortran2cpp() {} */
 
   // Output functions for use
-  int get_first_dimension() { return (from_fortran ? n2 : n1); }
-  int get_second_dimension() { return (from_fortran ? n1 : n2); }
+  int get_first_fft_dimension() { return (from_fortran ? n2 : n1); }
+  int get_second_fft_dimension() { return (from_fortran ? n1 : n2); }
+  int get_first_spatial_dimension() { return n1; }
+  int get_second_spatial_dimension() { return n2; }
   int get_third_dimension() { return n3; }
 
   // Output functions of parameters

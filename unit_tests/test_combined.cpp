@@ -20,8 +20,8 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
   // Populate mode data
   rmodes.get_data(0.0, mX, mY, mZ, mFS);
   // Get dimensions
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
   double nd_xlen = rmodes.get_nondim_xlen();
   double nd_ylen = rmodes.get_nondim_ylen();
   double nd_depth = rmodes.get_nondim_depth();
@@ -136,8 +136,8 @@ TEST_F(CombinedTest, ReadFFTDim) {
   // Populate mode data
   rmodes.get_data(0, mX, mY, mZ, mFS);
   // Get dimensions
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
   // Get dimensional constants
   double dimL = rmodes.get_L();
   double dimT = rmodes.get_T();
@@ -260,8 +260,8 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   // Populate mode data
   rmodes.get_data(0.0, mX, mY, mZ, mFS);
   // Get dimensions
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
 
   // Allocate complex pointers and get plan
   fftw_plan plan;

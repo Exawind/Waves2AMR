@@ -8,8 +8,10 @@ int main(int argc, char *argv[]) {
   std::string fname = "../tests/nwt_2D_modes_HOS_SWENSE.dat";
   // Initialize mode reader and dimensionalize params
   ReadModes<double> rmodes(fname, false, false);
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
+  int n0_sp = rmodes.get_first_spatial_dimension();
+  int n1_sp = rmodes.get_second_spatial_dimension();
   int n2 = rmodes.get_third_dimension();
   double depth = rmodes.get_depth();
   double xlen = rmodes.get_xlen();
@@ -32,7 +34,7 @@ int main(int argc, char *argv[]) {
 
   // Timestep stored: t = dt
   double dt_out = rmodes.get_dtout();
-  rmodes.get_data(dt_out, mX, mY, mZ, mFS, mAdd);
+  rmodes.get_data(10.0 * dt_out, mX, mY, mZ, mFS, mAdd);
 
   // Set up fftw_complex ptr for eta and get plan
   std::vector<fftw_plan> plan_vector{};
@@ -167,14 +169,14 @@ int main(int argc, char *argv[]) {
   }
 
   // Interpolate to multifab
-  const amrex::Real spd_dx = xlen / n0;
-  const amrex::Real spd_dy = ylen / n1;
+  const amrex::Real spd_dx = xlen / n0_sp;
+  const amrex::Real spd_dy = ylen / n1_sp;
   const amrex::Real zero_sea_level = 0.0;
   interp_to_mfab::interp_eta_to_levelset_field(
-      n0, n1, spd_dx, spd_dy, 0.0, 0.0, zero_sea_level, true, hos_eta_vec,
+      n0_sp, n1_sp, spd_dx, spd_dy, 0.0, 0.0, zero_sea_level, true, hos_eta_vec,
       phi_field, geom_all);
   interp_to_mfab::interp_velocity_to_field(
-      n0, n1, spd_dx, spd_dy, 0.0, 0.0, true, indvec, hvec, hos_u_vec,
+      n0_sp, n1_sp, spd_dx, spd_dy, 0.0, 0.0, true, indvec, hvec, hos_u_vec,
       hos_v_vec, hos_w_vec, velocity_field, geom_all);
 
   // Try to get next timestep (not available)
