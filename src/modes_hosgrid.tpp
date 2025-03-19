@@ -38,10 +38,10 @@ void modes_hosgrid::populate_hos_vel(
 }
 
 // Uses ReadModes object directly instead of of separate variables
-template <typename VT>
+template <typename VT, typename PT>
 void modes_hosgrid::populate_hos_eta(
     ReadModes<VT> rm_obj, std::vector<fftw_plan> p_vector,
-    fftw_complex *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
+    PT *eta_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
 
   // Pass parameters to function via object calls
   populate_hos_eta(rm_obj.get_first_dimension(), rm_obj.get_second_dimension(),

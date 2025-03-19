@@ -35,9 +35,9 @@ void plan_ifftw_nwt(const int n0, const int n1,
                     std::vector<fftw_plan> &plan_vector, double *in,
                     double *in_sin, double *in_y, const planner_flags wisdom);
 
-template <typename VT>
+template <typename VT, typename PT>
 void populate_hos_eta(ReadModes<VT> rm_obj, std::vector<fftw_plan> p_vector,
-                      fftw_complex *eta_modes,
+                      PT *eta_modes,
                       amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
 void populate_hos_eta(const int n0, const int n1, const double dimL,
