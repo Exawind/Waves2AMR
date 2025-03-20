@@ -407,7 +407,7 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
 
   // Reused constants
   const double pi_xlen = M_PI / nd_xlen;
-  const double pi_ylen = M_PI / nd_ylen;
+  const double pi_ylen = (n0 == 1) ? 0.0 : M_PI / nd_ylen;
   // Loop modes to modify them
   for (int iy = 0; iy < n0; ++iy) {
     // Grid2Grid hosNWT.inc, line 699, index conversion
@@ -733,7 +733,6 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_y,
           const int idx = iy * (n1 - 2) + ix;
           sp_out[iy * n1 + (ix + 1)] = sp_work[idx];
         }
-        // Copy from out_sin ??
         sp_out[iy * n1 + (n1 - 1)] = 0.;
       }
     }

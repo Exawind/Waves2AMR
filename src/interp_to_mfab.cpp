@@ -620,13 +620,17 @@ void interp_to_mfab::interp_velocity_to_multifab3D(
       amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
       amrex::Real yc = problo[1] + (j + 0.5) * dx[1];
       const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
-      // HOS data assumed to be periodic in x and y
       const amrex::Real spd_Lx = spd_nx * spd_dx;
       const amrex::Real spd_Ly = spd_ny * spd_dy;
-      xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
-      xc = ((xc < 0.) ? xc + spd_Lx : xc);
-      yc = ((yc > spd_Ly) ? yc - spd_Ly : yc);
-      yc = ((yc < 0.) ? yc + spd_Ly : yc);
+      if (is_periodic) {
+        xc = ((xc > spd_Lx) ? xc - spd_Lx : xc);
+        xc = ((xc < 0.) ? xc + spd_Lx : xc);
+        yc = ((yc > spd_Ly) ? yc - spd_Ly : yc);
+        yc = ((yc < 0.) ? yc + spd_Ly : yc);
+      } else {
+        xc = amrex::min(spd_Lx, amrex::max(0., xc));
+        yc = amrex::min(spd_Ly, amrex::max(0., yc));
+      }
       // Initial positions and indices of HOS spatial data vectors
       int i0 = xc / spd_dx;
       int j0 = yc / spd_dy;
@@ -675,8 +679,16 @@ void interp_to_mfab::interp_velocity_to_multifab3D(
       k_blw = k_abv + 1;
       z0 = hvec_ptr[k_blw];
       // Periodicity for indices
-      i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
-      j1 = (j1 >= spd_ny) ? j1 - spd_ny : j1;
+      // Bounds for indices
+      if (is_periodic) {
+        i1 = (i1 >= spd_nx) ? i1 - spd_nx : i1;
+        j1 = (j1 >= spd_ny) ? j1 - spd_ny : j1;
+      } else {
+        i0 += (i1 >= spd_nx) ? -1 : 0;
+        i1 += (i1 >= spd_nx) ? -1 : 0;
+        j0 += (j1 >= spd_ny) ? -1 : 0;
+        j1 += (j1 >= spd_ny) ? -1 : 0;
+      }
       // Offset k index to correctly access spatial data
       const int ok_blw = k_blw - indvec_ptr[0];
       const int ok_abv = k_abv - indvec_ptr[0];
@@ -762,7 +774,8 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
         xc = ((xc < 0.) ? xc + spd_Lx : xc);
       } else {
         xc = amrex::min(spd_Lx, amrex::max(0., xc));
-      } // Initial positions and indices of HOS spatial data vectors
+      }
+      // Initial positions and indices of HOS spatial data vectors
       int i0 = xc / spd_dx;
       int i1 = i0 + 1;
       amrex::Real x0 = spd_dx * i0, x1 = spd_dx * i1;

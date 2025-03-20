@@ -47,9 +47,9 @@ int main(int argc, char *argv[]) {
   auto v_modes = modes_hosgrid::allocate_real(n0, n1);
   auto w_modes = modes_hosgrid::allocate_real(n0, n1);
   // Additional modes
-  auto au_modes = modes_hosgrid::allocate_real(n0, n2);
-  auto av_modes = modes_hosgrid::allocate_real(n0, n2);
-  auto aw_modes = modes_hosgrid::allocate_real(n0, n2);
+  auto au_modes = modes_hosgrid::allocate_real(n0, 1);
+  auto av_modes = modes_hosgrid::allocate_real(n0, 1);
+  auto aw_modes = modes_hosgrid::allocate_real(n0, 1);
 
   // --- Workflow for AMR-Wind --- //
   // Create heights where velocity will be sampled
