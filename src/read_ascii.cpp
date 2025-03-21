@@ -288,19 +288,11 @@ template <> bool ReadModes<double>::ascii_read_full(const int itime) {
     for (int i1 = 0; i1 < n1; ++i1) {
       is >> modeFST[idx + i1];
     }
-    for (int i1 = 0; i1 < n1; ++i1) {
-      if (i1 < n3) {
-        is >> modeAdd[idx3 + i1];
-      } else {
-        is >> buf_r;
-      }
+    for (int i1 = 0; i1 < n3; ++i1) {
+      is >> modeAdd[idx3 + i1];
     }
-    for (int i1 = 0; i1 < n1; ++i1) {
-      if (i1 < n3) {
-        is >> modeAddT[idx3 + i1];
-      } else {
-        is >> buf_r;
-      }
+    for (int i1 = 0; i1 < n3; ++i1) {
+      is >> modeAddT[idx3 + i1];
     }
     idx += n1;
     idx3 += n3;

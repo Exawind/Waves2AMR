@@ -405,6 +405,22 @@ TEST_F(AsciiReadTest, ModesInitNWT) {
 TEST_F(AsciiReadTest, Modes1NWT) {
 
   // Get mode sums at next output time
+  auto sums = ModeSumReal(1, -1.0);
+  // Test for expected values
+  constexpr double tol = 1e-10;
+  EXPECT_NEAR(sums[0], 1.9468905639335007E-002, tol);
+  EXPECT_NEAR(sums[1], 0.0, tol);
+  EXPECT_NEAR(sums[2], -1.9816444289550400E-002, tol);
+  EXPECT_NEAR(sums[3], -1.8172818384405542E-002, tol);
+  EXPECT_NEAR(sums[4], 2.9739698914925876E-003, tol);
+  EXPECT_NEAR(sums[5], -2.0671427889050596E-002, tol);
+  EXPECT_NEAR(sums[6], 4.2177859266753396E-004, tol);
+  EXPECT_NEAR(sums[7], 1.0262490306445876E-002, tol);
+}
+
+TEST_F(AsciiReadTest, Modes6NWT) {
+
+  // Get mode sums at another time
   auto sums = ModeSumReal(6, -1.0);
   // Test for expected values
   EXPECT_GT(sums[0], 0.0);
