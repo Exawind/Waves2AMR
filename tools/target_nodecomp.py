@@ -27,7 +27,7 @@ subprocess.run(exe + " case4_HOS-NWT.inp",shell=True)
 # Read in the probe file (has 2 probes)
 nheader_probfile = 47
 nprobes_probfile = 2
-t_init_irr, elev_init_irr = read_elev("init_irregular/Results/probes.dat", tskip, nheader_probfile, nprobes_probfile)
+t_init_irr, elev_init_irr = read_elev("Results/probes.dat", tskip, nheader_probfile, nprobes_probfile)
 
 # Convert to spectra
 s_init_in = convert_to_spectrum(t_init_irr, elev_init_irr[:,0]) # at wavemaker (close to it)
