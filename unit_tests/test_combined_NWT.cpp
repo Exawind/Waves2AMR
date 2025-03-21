@@ -241,7 +241,10 @@ TEST_F(CombinedTestNWT, ReadFFTNonDim3D) {
 
   // Allocate complex pointers and get plan
   std::vector<fftw_plan> plan_vector;
-  modes_hosgrid::plan_ifftw_nwt(n0, n1, plan_vector, &mFS[0],
+  auto eta_modes = modes_hosgrid::allocate_real(n0, n1);
+  // Perform copy because planning modifies modes
+  modes_hosgrid::copy_real(n0, n1, mFS, eta_modes);
+  modes_hosgrid::plan_ifftw_nwt(n0, n1, plan_vector, eta_modes,
                                 modes_hosgrid::planner_flags::patient);
   auto u_modes = modes_hosgrid::allocate_real(n0, n1);
   auto v_modes = modes_hosgrid::allocate_real(n0, n1);
@@ -410,6 +413,7 @@ TEST_F(CombinedTestNWT, ReadFFTNonDim3D) {
   }
 
   // Delete complex pointers to allocated data
+  delete[] eta_modes;
   delete[] u_modes;
   delete[] v_modes;
   delete[] w_modes;
