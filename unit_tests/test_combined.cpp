@@ -95,12 +95,12 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
     for (int i0 = 0; i0 < n0; ++i0) {
       for (int i1 = 0; i1 < n1; ++i1) {
         int idx = i0 * n1 + i1;
-        max_u = std::max(max_u, u[idx]);
-        min_u = std::min(min_u, u[idx]);
-        max_v = std::max(max_v, v[idx]);
-        min_v = std::min(min_v, v[idx]);
-        max_w = std::max(max_w, w[idx]);
-        min_w = std::min(min_w, w[idx]);
+        max_u = std::max(max_u, ulocal[idx]);
+        min_u = std::min(min_u, ulocal[idx]);
+        max_v = std::max(max_v, vlocal[idx]);
+        min_v = std::min(min_v, vlocal[idx]);
+        max_w = std::max(max_w, wlocal[idx]);
+        min_w = std::min(min_w, wlocal[idx]);
       }
     }
 
@@ -217,12 +217,12 @@ TEST_F(CombinedTest, ReadFFTDim) {
     for (int i0 = 0; i0 < n0; ++i0) {
       for (int i1 = 0; i1 < n1; ++i1) {
         int idx = i0 * n1 + i1;
-        max_u = std::max(max_u, u[idx]);
-        min_u = std::min(min_u, u[idx]);
-        max_v = std::max(max_v, v[idx]);
-        min_v = std::min(min_v, v[idx]);
-        max_w = std::max(max_w, w[idx]);
-        min_w = std::min(min_w, w[idx]);
+        max_u = std::max(max_u, ulocal[idx]);
+        min_u = std::min(min_u, ulocal[idx]);
+        max_v = std::max(max_v, vlocal[idx]);
+        min_v = std::min(min_v, vlocal[idx]);
+        max_w = std::max(max_w, wlocal[idx]);
+        min_w = std::min(min_w, wlocal[idx]);
       }
     }
 
@@ -333,12 +333,12 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
     for (int i0 = 0; i0 < n0; ++i0) {
       for (int i1 = 0; i1 < n1; ++i1) {
         int idx = i0 * n1 + i1;
-        max_u = std::max(max_u, u[idx]);
-        min_u = std::min(min_u, u[idx]);
-        max_v = std::max(max_v, v[idx]);
-        min_v = std::min(min_v, v[idx]);
-        max_w = std::max(max_w, w[idx]);
-        min_w = std::min(min_w, w[idx]);
+        max_u = std::max(max_u, ulocal[idx]);
+        min_u = std::min(min_u, ulocal[idx]);
+        max_v = std::max(max_v, vlocal[idx]);
+        min_v = std::min(min_v, vlocal[idx]);
+        max_w = std::max(max_w, wlocal[idx]);
+        min_w = std::min(min_w, wlocal[idx]);
       }
     }
 
