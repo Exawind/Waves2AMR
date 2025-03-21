@@ -272,4 +272,33 @@ TEST_F(AsciiReadTest, ModesBriefEOF) {
   // True = successful read; False = EOF detected
 }
 
+TEST_F(AsciiReadTest, InitEmptyConstructorNWT) {
+  std::string fname = "../tests/nwt_3D_modes_HOS_SWENSE.dat";
+
+  // Read
+  ReadModes<double> rmodes;
+
+  rmodes.initialize(fname, true);
+
+  EXPECT_EQ(rmodes.get_n1(), 64);
+  EXPECT_EQ(rmodes.get_n3(), 32);
+  EXPECT_EQ(rmodes.get_n2(), 5);
+  EXPECT_NEAR(rmodes.get_nondim_f(), 1.0 / 1.6507574019E+00, 1e-8);
+  EXPECT_NEAR(rmodes.get_nondim_Tstop(), 1.6507574019E+01, 1e-8);
+  EXPECT_NEAR(rmodes.get_nondim_xlen(), 7.7777777778E+00, 1e-8);
+  EXPECT_NEAR(rmodes.get_nondim_ylen(), 1.1111111111E+00, 1e-8);
+  EXPECT_NEAR(rmodes.get_nondim_depth(), 1.0, 1e-8);
+  EXPECT_NEAR(rmodes.get_nondim_g(), 1.0, 1e-8);
+  EXPECT_NEAR(rmodes.get_L(), 3.6, 1e-8);
+  EXPECT_NEAR(rmodes.get_T(), sqrt(3.6 / 9.81), 1e-8);
+
+  constexpr double tol = 1e-11;
+  EXPECT_NEAR(rmodes.get_f(), 1.0, tol * 1e1);
+  EXPECT_NEAR(rmodes.get_Tstop(), 10.0, tol * 1e2);
+  EXPECT_NEAR(rmodes.get_xlen(), 28., tol * 5e4);
+  EXPECT_NEAR(rmodes.get_ylen(), 4.0, tol * 5e4);
+  EXPECT_NEAR(rmodes.get_depth(), 3.6, tol * 1e2);
+  EXPECT_NEAR(rmodes.get_g(), 9.81, tol * 1e2);
+}
+
 } // namespace w2a_test
