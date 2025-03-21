@@ -9,7 +9,7 @@ class CombinedTest : public testing::Test {};
 TEST_F(CombinedTest, ReadFFTNonDim) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, 0.0);
@@ -20,8 +20,8 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
   // Populate mode data
   rmodes.get_data(0.0, mX, mY, mZ, mFS);
   // Get dimensions
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
   double nd_xlen = rmodes.get_nondim_xlen();
   double nd_ylen = rmodes.get_nondim_ylen();
   double nd_depth = rmodes.get_nondim_depth();
@@ -40,7 +40,7 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
   amrex::Gpu::DeviceVector<amrex::Real> w(n0 * n1, 0.0);
 
   // Get spatial data for eta
-  modes_hosgrid::populate_hos_eta_nondim(n0, n1, plan, eta_modes, eta);
+  modes_hosgrid::populate_hos_ocean_eta_nondim(n0, n1, plan, eta_modes, eta);
   // Transfer to host
   std::vector<amrex::Real> etalocal;
   etalocal.resize(eta.size());
@@ -74,9 +74,9 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
   // Get spatial data for velocity at different heights
   for (int n = 0; n < 2; ++n) {
 
-    modes_hosgrid::populate_hos_vel_nondim(n0, n1, nd_xlen, nd_ylen, nd_depth,
-                                           ht[n], mX, mY, mZ, plan, u_modes,
-                                           v_modes, w_modes, u, v, w);
+    modes_hosgrid::populate_hos_ocean_vel_nondim(
+        n0, n1, nd_xlen, nd_ylen, nd_depth, ht[n], mX, mY, mZ, plan, u_modes,
+        v_modes, w_modes, u, v, w);
 
     // Transfer to host
     std::vector<amrex::Real> ulocal, vlocal, wlocal;
@@ -95,12 +95,12 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
     for (int i0 = 0; i0 < n0; ++i0) {
       for (int i1 = 0; i1 < n1; ++i1) {
         int idx = i0 * n1 + i1;
-        max_u = std::max(max_u, u[idx]);
-        min_u = std::min(min_u, u[idx]);
-        max_v = std::max(max_v, v[idx]);
-        min_v = std::min(min_v, v[idx]);
-        max_w = std::max(max_w, w[idx]);
-        min_w = std::min(min_w, w[idx]);
+        max_u = std::max(max_u, ulocal[idx]);
+        min_u = std::min(min_u, ulocal[idx]);
+        max_v = std::max(max_v, vlocal[idx]);
+        min_v = std::min(min_v, vlocal[idx]);
+        max_w = std::max(max_w, wlocal[idx]);
+        min_w = std::min(min_w, wlocal[idx]);
       }
     }
 
@@ -125,7 +125,7 @@ TEST_F(CombinedTest, ReadFFTNonDim) {
 TEST_F(CombinedTest, ReadFFTDim) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, 0.0);
@@ -136,8 +136,8 @@ TEST_F(CombinedTest, ReadFFTDim) {
   // Populate mode data
   rmodes.get_data(0, mX, mY, mZ, mFS);
   // Get dimensions
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
   // Get dimensional constants
   double dimL = rmodes.get_L();
   double dimT = rmodes.get_T();
@@ -152,6 +152,8 @@ TEST_F(CombinedTest, ReadFFTDim) {
   auto u_modes = modes_hosgrid::allocate_complex(n0, n1);
   auto v_modes = modes_hosgrid::allocate_complex(n0, n1);
   auto w_modes = modes_hosgrid::allocate_complex(n0, n1);
+  std::vector<fftw_plan> plan_vector{};
+  plan_vector.push_back(plan);
 
   // Set up output vectors
   amrex::Gpu::DeviceVector<amrex::Real> eta(n0 * n1, 0.0);
@@ -160,7 +162,7 @@ TEST_F(CombinedTest, ReadFFTDim) {
   amrex::Gpu::DeviceVector<amrex::Real> w(n0 * n1, 0.0);
 
   // Get spatial data for eta
-  modes_hosgrid::populate_hos_eta(n0, n1, dimL, plan, eta_modes, eta);
+  modes_hosgrid::populate_hos_eta(n0, n1, dimL, plan_vector, eta_modes, eta);
   // Transfer to host
   std::vector<amrex::Real> etalocal;
   etalocal.resize(eta.size());
@@ -195,8 +197,8 @@ TEST_F(CombinedTest, ReadFFTDim) {
   for (int n = 0; n < 2; ++n) {
 
     modes_hosgrid::populate_hos_vel(n0, n1, xlen, ylen, depth, ht[n], dimL,
-                                    dimT, mX, mY, mZ, plan, u_modes, v_modes,
-                                    w_modes, u, v, w);
+                                    dimT, mX, mY, mZ, plan_vector, u_modes,
+                                    v_modes, w_modes, u, v, w);
 
     // Transfer to host
     std::vector<amrex::Real> ulocal, vlocal, wlocal;
@@ -215,12 +217,12 @@ TEST_F(CombinedTest, ReadFFTDim) {
     for (int i0 = 0; i0 < n0; ++i0) {
       for (int i1 = 0; i1 < n1; ++i1) {
         int idx = i0 * n1 + i1;
-        max_u = std::max(max_u, u[idx]);
-        min_u = std::min(min_u, u[idx]);
-        max_v = std::max(max_v, v[idx]);
-        min_v = std::min(min_v, v[idx]);
-        max_w = std::max(max_w, w[idx]);
-        min_w = std::min(min_w, w[idx]);
+        max_u = std::max(max_u, ulocal[idx]);
+        min_u = std::min(min_u, ulocal[idx]);
+        max_v = std::max(max_v, vlocal[idx]);
+        min_v = std::min(min_v, vlocal[idx]);
+        max_w = std::max(max_w, wlocal[idx]);
+        min_w = std::min(min_w, wlocal[idx]);
       }
     }
 
@@ -238,6 +240,8 @@ TEST_F(CombinedTest, ReadFFTDim) {
   delete[] u_modes;
   delete[] v_modes;
   delete[] w_modes;
+  // Clear plan vector
+  plan_vector.clear();
   // Delete plan
   fftw_destroy_plan(plan);
 }
@@ -245,7 +249,7 @@ TEST_F(CombinedTest, ReadFFTDim) {
 TEST_F(CombinedTest, ReadFFTDimRMObj) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read
-  ReadModes rmodes(fname);
+  ReadModes<std::complex<double>> rmodes(fname);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, 0.0);
@@ -256,8 +260,8 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   // Populate mode data
   rmodes.get_data(0.0, mX, mY, mZ, mFS);
   // Get dimensions
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
 
   // Allocate complex pointers and get plan
   fftw_plan plan;
@@ -265,6 +269,8 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   auto u_modes = modes_hosgrid::allocate_complex(n0, n1);
   auto v_modes = modes_hosgrid::allocate_complex(n0, n1);
   auto w_modes = modes_hosgrid::allocate_complex(n0, n1);
+  std::vector<fftw_plan> plan_vector{};
+  plan_vector.push_back(plan);
 
   // Set up output vectors
   amrex::Gpu::DeviceVector<amrex::Real> eta(n0 * n1, 0.0);
@@ -273,7 +279,7 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   amrex::Gpu::DeviceVector<amrex::Real> w(n0 * n1, 0.0);
 
   // Get spatial data for eta
-  modes_hosgrid::populate_hos_eta(rmodes, plan, eta_modes, eta);
+  modes_hosgrid::populate_hos_eta(rmodes, plan_vector, eta_modes, eta);
   // Transfer to host
   std::vector<amrex::Real> etalocal;
   etalocal.resize(eta.size());
@@ -307,8 +313,8 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   // Get spatial data for velocity at different heights
   for (int n = 0; n < 2; ++n) {
 
-    modes_hosgrid::populate_hos_vel(rmodes, ht[n], mX, mY, mZ, plan, u_modes,
-                                    v_modes, w_modes, u, v, w);
+    modes_hosgrid::populate_hos_vel(rmodes, ht[n], mX, mY, mZ, plan_vector,
+                                    u_modes, v_modes, w_modes, u, v, w);
 
     // Transfer to host
     std::vector<amrex::Real> ulocal, vlocal, wlocal;
@@ -327,12 +333,12 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
     for (int i0 = 0; i0 < n0; ++i0) {
       for (int i1 = 0; i1 < n1; ++i1) {
         int idx = i0 * n1 + i1;
-        max_u = std::max(max_u, u[idx]);
-        min_u = std::min(min_u, u[idx]);
-        max_v = std::max(max_v, v[idx]);
-        min_v = std::min(min_v, v[idx]);
-        max_w = std::max(max_w, w[idx]);
-        min_w = std::min(min_w, w[idx]);
+        max_u = std::max(max_u, ulocal[idx]);
+        min_u = std::min(min_u, ulocal[idx]);
+        max_v = std::max(max_v, vlocal[idx]);
+        min_v = std::min(min_v, vlocal[idx]);
+        max_w = std::max(max_w, wlocal[idx]);
+        min_w = std::min(min_w, wlocal[idx]);
       }
     }
 
@@ -350,6 +356,8 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   delete[] u_modes;
   delete[] v_modes;
   delete[] w_modes;
+  // Clear plan vector
+  plan_vector.clear();
   // Delete plan
   fftw_destroy_plan(plan);
 }

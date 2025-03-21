@@ -7,9 +7,11 @@ int main(int argc, char *argv[]) {
   // Name of modes file
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Initialize mode reader and dimensionalize params
-  ReadModes rmodes(fname, false);
-  int n0 = rmodes.get_first_dimension();
-  int n1 = rmodes.get_second_dimension();
+  ReadModes<std::complex<double>> rmodes(fname, true, false);
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
+  int n0_sp = rmodes.get_first_spatial_dimension();
+  int n1_sp = rmodes.get_second_spatial_dimension();
   double depth = rmodes.get_depth();
   double xlen = rmodes.get_xlen();
   double ylen = rmodes.get_ylen();
@@ -35,6 +37,9 @@ int main(int argc, char *argv[]) {
   fftw_plan plan;
   fftw_complex *eta_modes =
       modes_hosgrid::allocate_plan_copy(n0, n1, plan, mFS);
+
+  std::vector<fftw_plan> plan_vector{};
+  plan_vector.push_back(plan);
 
   // Allocate ptrs for velocity as well, copy is built-in later
   auto u_modes = modes_hosgrid::allocate_complex(n0, n1);
@@ -107,7 +112,8 @@ int main(int argc, char *argv[]) {
 
   // Perform fftw for eta
   amrex::Gpu::DeviceVector<amrex::Real> hos_eta_vec(n0 * n1, 0.0);
-  modes_hosgrid::populate_hos_eta(n0, n1, dimL, plan, eta_modes, hos_eta_vec);
+  modes_hosgrid::populate_hos_eta(n0, n1, dimL, plan_vector, eta_modes,
+                                  hos_eta_vec);
 
   // Loop through heights to check and print
   int n_hvec = 0;
@@ -148,21 +154,22 @@ int main(int argc, char *argv[]) {
     // Get sample height
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
-    modes_hosgrid::populate_hos_vel(n0, n1, xlen, ylen, depth, ht, dimL, dimT,
-                                    mX, mY, mZ, plan, u_modes, v_modes, w_modes,
-                                    hos_u_vec, hos_v_vec, hos_w_vec, indv);
+    modes_hosgrid::populate_hos_vel(
+        n0, n1, xlen, ylen, depth, ht, dimL, dimT, mX, mY, mZ, plan_vector,
+        u_modes, v_modes, w_modes, hos_u_vec, hos_v_vec, hos_w_vec, indv);
     indv += n0 * n1;
   }
 
   // Interpolate to multifab
-  const amrex::Real spd_dx = xlen / n0;
-  const amrex::Real spd_dy = ylen / n1;
+  const amrex::Real spd_dx = xlen / n0_sp;
+  const amrex::Real spd_dy = ylen / n1_sp;
   const amrex::Real zero_sea_level = 0.0;
   interp_to_mfab::interp_eta_to_levelset_field(
-      n0, n1, spd_dx, spd_dy, zero_sea_level, hos_eta_vec, phi_field, geom_all);
-  interp_to_mfab::interp_velocity_to_field(n0, n1, spd_dx, spd_dy, indvec, hvec,
-                                           hos_u_vec, hos_v_vec, hos_w_vec,
-                                           velocity_field, geom_all);
+      n0_sp, n1_sp, spd_dx, spd_dy, 0.0, 0.0, zero_sea_level, true, hos_eta_vec,
+      phi_field, geom_all);
+  interp_to_mfab::interp_velocity_to_field(
+      n0_sp, n1_sp, spd_dx, spd_dy, 0.0, 0.0, true, indvec, hvec, hos_u_vec,
+      hos_v_vec, hos_w_vec, velocity_field, geom_all);
 
   // Try to get next timestep (not available)
   bool readflag = rmodes.get_data(2.0 * dt_out, mX, mY, mZ, mFS);
@@ -181,6 +188,7 @@ int main(int argc, char *argv[]) {
   delete[] u_modes;
   delete[] v_modes;
   delete[] w_modes;
+  plan_vector.clear();
   fftw_destroy_plan(plan);
 
   // Finalize AMReX

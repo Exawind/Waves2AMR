@@ -1,8 +1,8 @@
+#include "gtest/gtest.h"
+#include <array>
 #include <complex>
 #include <fftw3.h>
 #include <vector>
-#include "gtest/gtest.h"
-#include <array>
 
 namespace aux_tests {
 
@@ -97,4 +97,42 @@ TEST_F(FFTExampleTest, SineSolution) {
   }
 }
 
-} // namespace
+TEST_F(FFTExampleTest, HowToBasicR2R) {
+  int nx = 4;
+  int ny = 20;
+  double in[nx * ny];
+  double out[nx * ny];
+
+  for (int i = 0; i < nx; ++i) {
+    for (int j = 0; j < ny; ++j) {
+      in[i * ny + j] = 0.0;
+    }
+  }
+
+  std::vector<fftw_plan> p_vector{};
+  auto plan = fftw_plan_r2r_2d(nx, ny, &in[0], &out[0], FFTW_REDFT00,
+                               FFTW_REDFT00, FFTW_MEASURE);
+  p_vector.emplace_back(plan);
+  fftw_execute_r2r(p_vector[0], &in[0], &out[0]);
+  fftw_destroy_plan(plan);
+  p_vector.clear();
+}
+
+TEST_F(FFTExampleTest, HowToBasicR2R1D) {
+  int nx = 1;
+  int ny = 20;
+  double in[nx * ny];
+  double out[nx * ny];
+
+  for (int i = 0; i < nx; ++i) {
+    for (int j = 0; j < ny; ++j) {
+      in[i * ny + j] = 0.0;
+    }
+  }
+
+  auto plan = fftw_plan_r2r_1d(ny, &in[0], &out[0], FFTW_REDFT00, FFTW_MEASURE);
+  fftw_execute_r2r(plan, &in[0], &out[0]);
+  fftw_destroy_plan(plan);
+}
+
+} // namespace aux_tests

@@ -359,8 +359,12 @@ TEST_F(InterpToMFabTest, interp_eta_to_multifab_lateral) {
 
   // Perform interpolation
   const amrex::Real zsl = 0.0;
+  const amrex::Real spd_xlo = 0.0;
+  const amrex::Real spd_ylo = 0.0;
+  const bool is_periodic{true};
   interp_to_mfab::interp_eta_to_levelset_field(
-      spd_nx, spd_ny, spd_dx, spd_dy, zsl, etavec, field_fabs, problo, dx);
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, zsl, is_periodic,
+      etavec, field_fabs, problo, dx);
   // Check error directly
   const amrex::Real error = error_eta(mf, nz, zsl, problo[0], dx[0]);
   EXPECT_NEAR(error, 0.0, 1e-8);
@@ -418,9 +422,12 @@ TEST_F(InterpToMFabTest, interp_velocity_to_multifab) {
                                                       problo, dx);
   EXPECT_EQ(flag, 1);
   // Perform interpolation
-  interp_to_mfab::interp_velocity_to_field(spd_nx, spd_ny, spd_dx, spd_dy,
-                                           indvec, hvec, uvec, vvec, wvec,
-                                           field_fabs, problo, dx);
+  const amrex::Real spd_xlo{0.0};
+  const amrex::Real spd_ylo{0.0};
+  const bool is_periodic{true};
+  interp_to_mfab::interp_velocity_to_field(
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
+      hvec, uvec, vvec, wvec, field_fabs, problo, dx);
   // Check sum
   const amrex::Real mf_sum_u = sum_multifab(*field_fabs[0], 0);
   const amrex::Real mf_sum_v = sum_multifab(*field_fabs[0], 1);
@@ -492,9 +499,12 @@ TEST_F(InterpToMFabTest, interp_velocity_to_multifab_modindices) {
   amrex::Vector<int> indvec{1, 2, 3};
 
   // Perform interpolation
-  interp_to_mfab::interp_velocity_to_field(spd_nx, spd_ny, spd_dx, spd_dy,
-                                           indvec, hvec, uvec, vvec, wvec,
-                                           field_fabs, problo, dx);
+  const amrex::Real spd_xlo{0.0};
+  const amrex::Real spd_ylo{0.0};
+  const bool is_periodic{true};
+  interp_to_mfab::interp_velocity_to_field(
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
+      hvec, uvec, vvec, wvec, field_fabs, problo, dx);
   // Check sum
   const amrex::Real mf_sum_u = sum_multifab(*field_fabs[0], 0);
   const amrex::Real mf_sum_v = sum_multifab(*field_fabs[0], 1);
@@ -560,9 +570,12 @@ TEST_F(InterpToMFabTest, interp_velocity_to_multifab_lateral) {
   EXPECT_EQ(flag, 1);
 
   // Perform interpolation
-  interp_to_mfab::interp_velocity_to_field(spd_nx, spd_ny, spd_dx, spd_dy,
-                                           indvec, hvec, uvec, vvec, wvec,
-                                           field_fabs, problo, dx);
+  const amrex::Real spd_xlo{0.0};
+  const amrex::Real spd_ylo{0.0};
+  const bool is_periodic{true};
+  interp_to_mfab::interp_velocity_to_field(
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
+      hvec, uvec, vvec, wvec, field_fabs, problo, dx);
   // Check error directly
   const amrex::Real error = error_velocity(mf, nz);
   EXPECT_NEAR(error, 0.0, 1e-8);
