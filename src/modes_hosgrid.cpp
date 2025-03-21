@@ -675,14 +675,14 @@ void modes_hosgrid::do_ifftw(const int n0, const int n1, const bool cos_y,
     if (cos_x) {
       iplan = 0; // CC
     } else {
-      iplan = 1; // SC
+      iplan = 1; // CS
     }
   } else {
-    if (cos_x && cos_y) {
+    if (cos_y && cos_x) {
       iplan = 0; // CC
-    } else if (cos_x && !cos_y) {
+    } else if (cos_y && !cos_x) {
       iplan = 1; // CS: reversed SC
-    } else {     // if (!cos_x && cos_y) {
+    } else {     // if (!cos_y && cos_x) {
       iplan = 2; // SC: reversed CS
     }
   }
