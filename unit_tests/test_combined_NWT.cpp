@@ -227,7 +227,7 @@ TEST_F(CombinedTestNWT, ReadFFTNonDim3D) {
   std::vector<double> mY(vsize, 0.0);
   std::vector<double> mZ(vsize, 0.0);
   std::vector<double> mFS(vsize, 0.0);
-  std::vector<double> mAdd(vsize, 0.0);
+  std::vector<double> mAdd(vasize, 0.0);
 
   // Populate mode data
   rmodes.get_data((int)6, mX, mY, mZ, mFS, mAdd);

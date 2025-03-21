@@ -5,7 +5,7 @@ target_sources(${w2a_utests_name}
                test_fftexamples.cpp
                test_hosgrid.cpp
                test_combined.cpp
-               test_combined_NWt.cpp
+               test_combined_NWT.cpp
                test_AMReXexamples.cpp
                test_interp_to_mfab.cpp
                utest_main.cpp)
