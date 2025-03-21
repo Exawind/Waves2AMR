@@ -9,7 +9,7 @@ namespace {
 std::array<double, 8> ModeSum(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read and convert nondim quantities
-  ReadModes<std::complex<double>> rmodes(fname, true);
+  ReadModes<std::complex<double>> rmodes(fname, true, true);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -47,7 +47,7 @@ std::array<double, 8> ModeSum(double time, double initval) {
 std::array<double, 6> ModeSumBrief(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read modes
-  ReadModes<std::complex<double>> rmodes(fname, false);
+  ReadModes<std::complex<double>> rmodes(fname, true, false);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -76,10 +76,94 @@ std::array<double, 6> ModeSumBrief(double time, double initval) {
                                mFS_sum, mX_scndr, mX_scndi};
 }
 
+std::array<double, 9> ModeSumReal(int itime, double initval) {
+  std::string fname = "../tests/nwt_3D_modes_HOS_SWENSE.dat";
+  // Read and convert nondim quantities
+  ReadModes<double> rmodes(fname, false, true);
+  // Initialize and size output variables
+  int vsize = rmodes.get_vector_size();
+  int vasize = rmodes.get_addl_vector_size();
+  std::vector<double> mX(vsize, initval);
+  std::vector<double> mY(vsize, initval);
+  std::vector<double> mZ(vsize, initval);
+  std::vector<double> mT(vsize, initval);
+  std::vector<double> mFS(vsize, initval);
+  std::vector<double> mFST(vsize, initval);
+  std::vector<double> mAdd(vasize, initval);
+  std::vector<double> mAddT(vasize, initval);
+
+  rmodes.get_data(itime, mX, mY, mZ, mT, mFS, mFST, mAdd, mAddT);
+
+  // Get sum of vectors
+  double mX_sum = 0;
+  double mY_sum = 0;
+  double mZ_sum = 0;
+  double mT_sum = 0;
+  double mFS_sum = 0;
+  double mFST_sum = 0;
+  double mAdd_sum = 0;
+  double mAddT_sum = 0;
+  for (int i = 0; i < vsize; ++i) {
+    mX_sum += mX[i];
+    mY_sum += mY[i];
+    mZ_sum += mZ[i];
+    mT_sum += mT[i];
+    mFS_sum += mFS[i];
+    mFST_sum += mFST[i];
+  }
+  for (int i = 0; i < vasize; ++i) {
+    mAdd_sum += mAdd[i];
+    mAddT_sum += mAddT[i];
+  }
+
+  double mAddT_last = mAddT[vasize - 1];
+
+  return std::array<double, 9>{mX_sum,   mY_sum,    mZ_sum,
+                               mT_sum,   mFS_sum,   mFST_sum,
+                               mAdd_sum, mAddT_sum, mAddT_last};
+}
+
+std::array<double, 6> ModeSumBriefReal(int itime, double initval) {
+  std::string fname = "../tests/nwt_3D_modes_HOS_SWENSE.dat";
+  // Read and convert nondim quantities
+  ReadModes<double> rmodes(fname, false);
+  // Initialize and size output variables
+  int vsize = rmodes.get_vector_size();
+  int vasize = rmodes.get_addl_vector_size();
+  std::vector<double> mX(vsize, initval);
+  std::vector<double> mY(vsize, initval);
+  std::vector<double> mZ(vsize, initval);
+  std::vector<double> mFS(vsize, initval);
+  std::vector<double> mAdd(vasize, initval);
+
+  rmodes.get_data(itime, mX, mY, mZ, mFS, mAdd);
+
+  // Get sum of vectors
+  double mX_sum = 0;
+  double mY_sum = 0;
+  double mZ_sum = 0;
+  double mFS_sum = 0;
+  double mAdd_sum = 0;
+  for (int i = 0; i < vsize; ++i) {
+    mX_sum += mX[i];
+    mY_sum += mY[i];
+    mZ_sum += mZ[i];
+    mFS_sum += mFS[i];
+  }
+  for (int i = 0; i < vasize; ++i) {
+    mAdd_sum += mAdd[i];
+  }
+
+  double mAdd_last = mAdd[vasize - 1];
+
+  return std::array<double, 6>{mX_sum,  mY_sum,   mZ_sum,
+                               mFS_sum, mAdd_sum, mAdd_last};
+}
+
 bool ModeFlag(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read and convert nondim quantities
-  ReadModes<std::complex<double>> rmodes(fname, true);
+  ReadModes<std::complex<double>> rmodes(fname, true, true);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -98,7 +182,7 @@ bool ModeFlag(double time, double initval) {
 bool ModeFlagBrief(double time, double initval) {
   std::string fname = "../tests/modes_HOS_SWENSE.dat";
   // Read modes
-  ReadModes<std::complex<double>> rmodes(fname, false);
+  ReadModes<std::complex<double>> rmodes(fname, true, false);
   // Initialize and size output variables
   int vsize = rmodes.get_vector_size();
   std::vector<std::complex<double>> mX(vsize, initval);
@@ -154,7 +238,7 @@ TEST_F(AsciiReadTest, InitEmptyConstructor) {
   // Read
   ReadModes<std::complex<double>> rmodes;
 
-  rmodes.initialize(fname, true);
+  rmodes.initialize(fname, true, true);
 
   EXPECT_EQ(rmodes.get_n1(), 64);
   EXPECT_EQ(rmodes.get_n2(), 64);
@@ -182,7 +266,7 @@ TEST_F(AsciiReadTest, InitializeFail) {
   // Read
   ReadModes<std::complex<double>> rmodes(fname);
 
-  EXPECT_DEATH(rmodes.initialize(fname, true);, "");
+  EXPECT_DEATH(rmodes.initialize(fname, true, true);, "");
 }
 
 TEST_F(AsciiReadTest, InitializeNoFile1) {
@@ -198,7 +282,7 @@ TEST_F(AsciiReadTest, InitializeNoFile2) {
   // Initialize with file that does not exist
   ReadModes<std::complex<double>> rmodes;
 
-  EXPECT_FALSE(rmodes.initialize(fname, true));
+  EXPECT_FALSE(rmodes.initialize(fname, true, true));
 }
 
 TEST_F(AsciiReadTest, ModesInit) {
@@ -299,6 +383,53 @@ TEST_F(AsciiReadTest, InitEmptyConstructorNWT) {
   EXPECT_NEAR(rmodes.get_ylen(), 4.0, tol * 5e4);
   EXPECT_NEAR(rmodes.get_depth(), 3.6, tol * 1e2);
   EXPECT_NEAR(rmodes.get_g(), 9.81, tol * 1e2);
+}
+
+TEST_F(AsciiReadTest, ModesInitNWT) {
+
+  // Get mode sums at next output time
+  auto sums = ModeSumReal(-1, -1.0);
+  // Test for expected values
+  constexpr double tol = 1e-10;
+  EXPECT_NEAR(sums[0], 0.0, tol);
+  EXPECT_NEAR(sums[1], 0.0, tol);
+  EXPECT_NEAR(sums[2], 0.0, tol);
+  EXPECT_NEAR(sums[3], 0.0, tol);
+  EXPECT_NEAR(sums[4], 0.0, tol);
+  EXPECT_NEAR(sums[5], 0.0, tol);
+  EXPECT_NEAR(sums[6], 0.0, tol);
+  EXPECT_NEAR(sums[7], 0.0, tol);
+  EXPECT_NEAR(sums[8], 0.0, tol);
+}
+
+TEST_F(AsciiReadTest, Modes1NWT) {
+
+  // Get mode sums at next output time
+  auto sums = ModeSumReal(6, -1.0);
+  // Test for expected values
+  EXPECT_GT(sums[0], 0.0);
+  EXPECT_GT(sums[1], 0.0);
+  EXPECT_GT(sums[2], 0.0);
+  EXPECT_GT(sums[3], 0.0);
+  EXPECT_GT(sums[4], 0.0);
+  EXPECT_GT(sums[5], 0.0);
+  EXPECT_EQ(sums[6], 3.1760843980E-20);
+  EXPECT_EQ(sums[7], 6.6965350771E-20);
+}
+
+TEST_F(AsciiReadTest, Modes6BriefNWT) {
+
+  // Get mode sums at next output time
+  auto sums = ModeSumBriefReal(6, -1.0);
+  // Test for expected values
+  EXPECT_GT(sums[0], 0.0);
+  EXPECT_GT(sums[1], 0.0);
+  EXPECT_GT(sums[2], 0.0);
+  EXPECT_GT(sums[3], 0.0);
+  EXPECT_GT(sums[4], 0.0);
+  EXPECT_GT(sums[5], 0.0);
+  EXPECT_EQ(sums[6], 3.1760843980E-20);
+  EXPECT_EQ(sums[7], 6.6965350771E-20);
 }
 
 } // namespace w2a_test

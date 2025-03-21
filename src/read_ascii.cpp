@@ -238,7 +238,6 @@ template <> bool ReadModes<double>::ascii_read_full(const int itime) {
   fname << m_filename;
   std::ifstream is(fname.str());
   // For now, assume "extraInterpolationNumber" is 1
-  std::cout << "inside ReadModes<double>::ascii_read_full\n";
 
   // Skip previous timesteps
   // -- each entry is real and 8 vars
