@@ -432,7 +432,7 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
             coeff2 =
                 exp(k * nd_z) * (1.0 - exp(-2.0 * kZ)) / (1.0 - exp(-2.0 * k));
           } else {
-            coeff = exp(k * nd_z);
+            coeff = exp(kZ);
             coeff2 = coeff;
           }
           if (coeff >= 3.0) {
