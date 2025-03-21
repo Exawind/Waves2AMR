@@ -422,9 +422,9 @@ void modes_hosgrid::populate_hos_nwt_vel_nondim(
       // Get coefficients !!
       double coeff = 1.0;
       double coeff2 = 1.0;
-      if (iy == 0) {
+      if (ix == 0) {
         // Do nothing for ix = 0, iy = 0
-        if (ix != 0) {
+        if (iy != 0) {
           // Modified coeffs for iy = 0, ix > 0
           if ((kZ < 50.0) && (k < 50.0)) {
             coeff =
