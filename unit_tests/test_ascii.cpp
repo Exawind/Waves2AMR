@@ -423,14 +423,15 @@ TEST_F(AsciiReadTest, Modes6NWT) {
   // Get mode sums at another time
   auto sums = ModeSumReal(6, -1.0);
   // Test for expected values
-  EXPECT_GT(sums[0], 0.0);
-  EXPECT_GT(sums[1], 0.0);
-  EXPECT_GT(sums[2], 0.0);
-  EXPECT_GT(sums[3], 0.0);
-  EXPECT_GT(sums[4], 0.0);
-  EXPECT_GT(sums[5], 0.0);
-  EXPECT_EQ(sums[6], 3.1760843980E-20);
-  EXPECT_EQ(sums[7], 6.6965350771E-20);
+  constexpr double tol = 1e-10;
+  EXPECT_NEAR(sums[0], 1.5677420477677985E-002, tol);
+  EXPECT_NEAR(sums[1], 0.0, tol);
+  EXPECT_NEAR(sums[2], -1.4318475335939477E-002, tol);
+  EXPECT_NEAR(sums[3], -3.1591109924279928E-003, tol);
+  EXPECT_NEAR(sums[4], -8.8376327277556004E-003, tol);
+  EXPECT_NEAR(sums[5], -1.7356158230361008E-002, tol);
+  EXPECT_NEAR(sums[6], 5.0759896832777178E-003, tol);
+  EXPECT_NEAR(sums[7], 8.3588915327428188E-003, tol);
 }
 
 TEST_F(AsciiReadTest, Modes6BriefNWT) {
@@ -438,14 +439,12 @@ TEST_F(AsciiReadTest, Modes6BriefNWT) {
   // Get mode sums at next output time
   auto sums = ModeSumBriefReal(6, -1.0);
   // Test for expected values
-  EXPECT_GT(sums[0], 0.0);
-  EXPECT_GT(sums[1], 0.0);
-  EXPECT_GT(sums[2], 0.0);
-  EXPECT_GT(sums[3], 0.0);
-  EXPECT_GT(sums[4], 0.0);
-  EXPECT_GT(sums[5], 0.0);
-  EXPECT_EQ(sums[6], 3.1760843980E-20);
-  EXPECT_EQ(sums[7], 6.6965350771E-20);
+  constexpr double tol = 1e-10;
+  EXPECT_NEAR(sums[0], 1.5677420477677985E-002, tol);
+  EXPECT_NEAR(sums[1], 0.0, tol);
+  EXPECT_NEAR(sums[2], -1.4318475335939477E-002, tol);
+  EXPECT_NEAR(sums[3], -8.8376327277556004E-003, tol);
+  EXPECT_NEAR(sums[4], 5.0759896832777178E-003, tol);
 }
 
 } // namespace w2a_test

@@ -364,14 +364,10 @@ template <> bool ReadModes<double>::ascii_read_brief(const int itime) {
       is >> buf_r;
       // Don't need FST
     }
-    for (int i1 = 0; i1 < n1; ++i1) {
-      if (i1 < n3) {
-        is >> modeAdd[idx3 + i1];
-      } else {
-        is >> buf_r;
-      }
+    for (int i1 = 0; i1 < n3; ++i1) {
+      is >> modeAdd[idx3 + i1];
     }
-    for (int i1 = 0; i1 < n1; ++i1) {
+    for (int i1 = 0; i1 < n3; ++i1) {
       is >> buf_r;
       // Don't need AddT
     }
