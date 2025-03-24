@@ -130,6 +130,25 @@ TEST_F(InterpToMFabTest, create_height_vector) {
   // flag = 3 is hard to trigger without triggering flag = 1
 }
 
+TEST_F(InterpToMFabTest, create_height_vector_offset) {
+  const int n = 17;
+  const amrex::Real r = 1.005;
+  const amrex::Real dz0 = 0.1;
+  const amrex::Real dzn = dz0 * std::pow(r, n - 2);
+  const amrex::Real l = dz0 * (1.0 - std::pow(r, n - 1)) / (1.0 - r);
+
+  // Check proper behavior
+  amrex::Vector<amrex::Real> hvec;
+  const amrex::Real zsl = 100.;
+  int flag = interp_to_mfab::create_height_vector(hvec, n, dz0, zsl, zsl - l);
+  // Should not fail with these inputs
+  EXPECT_EQ(flag, (int)0);
+  // Check beginning and ending size
+  EXPECT_NEAR(2.0 * (hvec[0] - zsl), dz0, 1e-10);
+  EXPECT_NEAR(-2.0 * (hvec[1] - zsl), dz0, 1e-10);
+  EXPECT_NEAR(hvec[n - 1], zsl - l + 0.5 * dzn, 1e-2);
+}
+
 TEST_F(InterpToMFabTest, get_local_height_indices) {
   // Create height vector for test
   int nheights = 5;

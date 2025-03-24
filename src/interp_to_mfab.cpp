@@ -66,7 +66,7 @@ int interp_to_mfab::create_height_vector(amrex::Vector<amrex::Real> &hvec,
 
   // Cells below interface are spaced with geometric series
   amrex::Real dz = dz0;
-  z = -0.5 * dz;
+  z = z_wlev - 0.5 * dz;
   for (int k = n_above; k < n; ++k) {
     hvec[k] = z;
     // Add half of current cell size
