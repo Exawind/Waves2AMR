@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     // Get sample height
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
-    modes_hosgrid::populate_hos_vel(n0, n1, n2, xlen, ylen, ht, dimL, dimT, mX,
+    modes_hosgrid::populate_hos_vel(n0, n1, n2, xlen, ylen, ht, 0.0, dimL, dimT, mX,
                                     mY, mZ, mAdd, plan_vector, u_modes, v_modes,
                                     w_modes, au_modes, av_modes, aw_modes,
                                     hos_u_vec, hos_v_vec, hos_w_vec, indv);
@@ -169,8 +169,8 @@ int main(int argc, char *argv[]) {
   }
 
   // Interpolate to multifab
-  const amrex::Real spd_dx = xlen / n0_sp;
-  const amrex::Real spd_dy = ylen / n1_sp;
+  const amrex::Real spd_dx = xlen / (n0_sp - 1);
+  const amrex::Real spd_dy = ylen / (n1_sp - 1);
   const amrex::Real zero_sea_level = 0.0;
   interp_to_mfab::interp_eta_to_levelset_field(
       n0_sp, n1_sp, spd_dx, spd_dy, 0.0, 0.0, zero_sea_level, true, hos_eta_vec,

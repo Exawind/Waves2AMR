@@ -130,6 +130,25 @@ TEST_F(InterpToMFabTest, create_height_vector) {
   // flag = 3 is hard to trigger without triggering flag = 1
 }
 
+TEST_F(InterpToMFabTest, create_height_vector_offset) {
+  const int n = 17;
+  const amrex::Real r = 1.005;
+  const amrex::Real dz0 = 0.1;
+  const amrex::Real dzn = dz0 * std::pow(r, n - 2);
+  const amrex::Real l = dz0 * (1.0 - std::pow(r, n - 1)) / (1.0 - r);
+
+  // Check proper behavior
+  amrex::Vector<amrex::Real> hvec;
+  const amrex::Real zsl = 100.;
+  int flag = interp_to_mfab::create_height_vector(hvec, n, dz0, zsl, zsl - l);
+  // Should not fail with these inputs
+  EXPECT_EQ(flag, (int)0);
+  // Check beginning and ending size
+  EXPECT_NEAR(2.0 * (hvec[0] - zsl), dz0, 1e-10);
+  EXPECT_NEAR(-2.0 * (hvec[1] - zsl), dz0, 1e-10);
+  EXPECT_NEAR(hvec[n - 1], zsl - l + 0.5 * dzn, 1e-2);
+}
+
 TEST_F(InterpToMFabTest, get_local_height_indices) {
   // Create height vector for test
   int nheights = 5;
@@ -572,6 +591,64 @@ TEST_F(InterpToMFabTest, interp_velocity_to_multifab_lateral) {
   // Perform interpolation
   const amrex::Real spd_xlo{0.0};
   const amrex::Real spd_ylo{0.0};
+  const bool is_periodic{true};
+  interp_to_mfab::interp_velocity_to_field(
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
+      hvec, uvec, vvec, wvec, field_fabs, problo, dx);
+  // Check error directly
+  const amrex::Real error = error_velocity(mf, nz);
+  EXPECT_NEAR(error, 0.0, 1e-8);
+  //  Note: this checks variation in x, ensures i, j indices aren't mixed up
+}
+
+TEST_F(InterpToMFabTest, interp_velocity_to_multifab_lateral_shift) {
+  // Set up 2D dimensions
+  const int spd_nx = 10, spd_ny = 20;
+  const amrex::Real spd_dx = 0.1, spd_dy = 0.05;
+  // Set up heights - not concerned with vertical interp
+  int nheights = 2;
+  amrex::Vector<amrex::Real> hvec;
+  hvec.resize(nheights);
+  hvec[0] = 1.5;
+  hvec[1] = -2.0;
+  // Set up velocity data
+  amrex::Gpu::DeviceVector<amrex::Real> dv(spd_nx * spd_ny, 0.0);
+  initialize_velocity_component(dv, spd_nx, spd_ny);
+  // Call function to populate
+  amrex::Gpu::DeviceVector<amrex::Real> uvec;
+  amrex::Gpu::DeviceVector<amrex::Real> vvec;
+  amrex::Gpu::DeviceVector<amrex::Real> wvec;
+  // U, V, W are all initialized, checked the same way
+  uvec.insert(uvec.end(), dv.begin(), dv.end());
+  uvec.insert(uvec.end(), dv.begin(), dv.end());
+  vvec.insert(vvec.end(), dv.begin(), dv.end());
+  vvec.insert(vvec.end(), dv.begin(), dv.end());
+  wvec.insert(wvec.end(), dv.begin(), dv.end());
+  wvec.insert(wvec.end(), dv.begin(), dv.end());
+
+  // Set up target mfabs and mesh
+  const int nz = 8;
+  amrex::BoxArray ba(amrex::Box(amrex::IntVect{0, 0, 0},
+                                amrex::IntVect{nz - 1, nz - 1, nz - 1}));
+  amrex::DistributionMapping dm{ba};
+  const int ncomp = 3;
+  const int nghost = 3;
+  amrex::MultiFab mf(ba, dm, ncomp, nghost);
+  amrex::Vector<amrex::MultiFab *> field_fabs{&mf};
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx_lev{0.125, 0.125, 0.125};
+  amrex::Vector<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>> dx{dx_lev};
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo_lev{-2., -2., -1.};
+  amrex::Vector<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>> problo{
+      problo_lev};
+  // Get indices
+  amrex::Vector<int> indvec;
+  int flag = interp_to_mfab::get_local_height_indices(indvec, hvec, field_fabs,
+                                                      problo, dx);
+  EXPECT_EQ(flag, 1);
+
+  // Perform interpolation
+  const amrex::Real spd_xlo{-2.0};
+  const amrex::Real spd_ylo{-2.0};
   const bool is_periodic{true};
   interp_to_mfab::interp_velocity_to_field(
       spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
