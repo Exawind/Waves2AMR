@@ -169,8 +169,8 @@ int main(int argc, char *argv[]) {
   }
 
   // Interpolate to multifab
-  const amrex::Real spd_dx = xlen / n0_sp;
-  const amrex::Real spd_dy = ylen / n1_sp;
+  const amrex::Real spd_dx = xlen / (n0_sp - 1);
+  const amrex::Real spd_dy = ylen / (n1_sp - 1);
   const amrex::Real zero_sea_level = 0.0;
   interp_to_mfab::interp_eta_to_levelset_field(
       n0_sp, n1_sp, spd_dx, spd_dy, 0.0, 0.0, zero_sea_level, true, hos_eta_vec,
