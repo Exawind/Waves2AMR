@@ -285,6 +285,15 @@ TEST_F(AsciiReadTest, InitializeNoFile2) {
   EXPECT_FALSE(rmodes.initialize(fname, true, true));
 }
 
+TEST_F(AsciiReadTest, InitializeWrongFile) {
+  std::string fname = "../tests/nwt_2D_modes_HOS_SWENSE.dat";
+
+  // Read
+  ReadModes<std::complex<double>> rmodes;
+
+  EXPECT_DEATH(rmodes.initialize(fname, true, true);, "");
+}
+
 TEST_F(AsciiReadTest, ModesInit) {
 
   // Get mode sums written at initialization, which are placeholders
@@ -354,6 +363,15 @@ TEST_F(AsciiReadTest, ModesBriefEOF) {
   EXPECT_TRUE(flag1);
   EXPECT_FALSE(flag2);
   // True = successful read; False = EOF detected
+}
+
+TEST_F(AsciiReadTest, InitializeWrongFileNWT) {
+  std::string fname = "../tests/modes_HOS_SWENSE.dat";
+
+  // Read
+  ReadModes<double> rmodes;
+
+  EXPECT_DEATH(rmodes.initialize(fname, false, true);, "");
 }
 
 TEST_F(AsciiReadTest, InitEmptyConstructorNWT) {

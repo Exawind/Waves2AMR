@@ -19,6 +19,14 @@ bool ReadModes<std::complex<double>>::ascii_initialize(bool is_ocean) {
   is >> d_n1 >> d_n2 >> dt_out >> T_stop >> xlen >> ylen >> depth >> g >> L >>
       T;
 
+  if (std::abs(T) < 1e-12) {
+    std::cout
+        << "Waves2AMR: ReadModes<std::complex<double>>::ascii_initialize() \n"
+        << "Time scale read as 0. HOS modes file is not an HOS-Ocean output "
+           "and is likely from HOS-NWT instead.\n";
+    std::exit(1);
+  }
+
   // xlen, ylen, depth, and g are nondimensionalized
   // L and T are dimensional
 
@@ -210,9 +218,17 @@ template <> bool ReadModes<double>::ascii_initialize(bool is_ocean) {
   // Check for is_ocean compatibility
 
   // Grid2Grid hosNWT.inc, line 297
-  double d_n1, d_n2, d_n3;
+  double d_n1, d_n2, d_n3, dummy;
   // (yes, these are supposed to be out of order)
-  is >> d_n1 >> d_n3 >> d_n2 >> dt_out >> T_stop >> xlen >> ylen >> depth;
+  is >> d_n1 >> d_n3 >> d_n2 >> dt_out >> T_stop >> xlen >> ylen >> depth >>
+      dummy;
+
+  if (std::abs(dummy) > 1e-12) {
+    std::cout << "Waves2AMR: ReadModes<double>::ascii_initialize() \n"
+              << "Unexpected nonzero parameters found. HOS modes file is not "
+                 "an HOS-NWT output and is likely from HOS-Ocean instead.\n";
+    std::exit(1);
+  }
 
   // xlen, ylen are nondimensionalized
   // depth is not, see lines 264-265
