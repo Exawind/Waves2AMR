@@ -778,7 +778,6 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
       int i0 = xc / spd_dx;
       int i1 = i0 + 1;
       amrex::Real x0 = spd_dx * i0, x1 = spd_dx * i1;
-      // Should there be an offset?
       // Get surrounding indices (go forward, go backward)
       while (i0 < spd_nx - 2 && x0 - spd_dx < xc) {
         ++i0;
