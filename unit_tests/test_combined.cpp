@@ -185,8 +185,9 @@ TEST_F(CombinedTest, ReadFFTDim) {
   EXPECT_NEAR(max_eta, 4.2660225672921364, 1e-10);
   EXPECT_NEAR(min_eta, -3.6415705091772734, 1e-10);
 
+  constexpr double zsl = 200.0;
   // Store values to check velocity
-  double ht[2]{-17.083096859139136, -31.347989411831382};
+  double ht[2]{-17.083096859139136 + zsl, -31.347989411831382 + zsl};
   double umaxref[2]{1.4526142174097856, 1.0803869257525434};
   double uminref[2]{-1.2900566679060890, -1.0015279450822712};
   double vmaxref[2]{0.42712160780051028, 0.33253336856145094};
@@ -196,7 +197,7 @@ TEST_F(CombinedTest, ReadFFTDim) {
   // Get spatial data for velocity at different heights
   for (int n = 0; n < 2; ++n) {
 
-    modes_hosgrid::populate_hos_vel(n0, n1, xlen, ylen, depth, ht[n], dimL,
+    modes_hosgrid::populate_hos_vel(n0, n1, xlen, ylen, depth, ht[n], zsl, dimL,
                                     dimT, mX, mY, mZ, plan_vector, u_modes,
                                     v_modes, w_modes, u, v, w);
 
@@ -302,8 +303,9 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   EXPECT_NEAR(max_eta, 4.2660225672921364, 1e-10);
   EXPECT_NEAR(min_eta, -3.6415705091772734, 1e-10);
 
+  constexpr double zsl = 200.0;
   // Store values to check velocity
-  double ht[2]{-17.083096859139136, -31.347989411831382};
+  double ht[2]{-17.083096859139136 + zsl, -31.347989411831382 + zsl};
   double umaxref[2]{1.4526142174097856, 1.0803869257525434};
   double uminref[2]{-1.2900566679060890, -1.0015279450822712};
   double vmaxref[2]{0.42712160780051028, 0.33253336856145094};
@@ -313,7 +315,7 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   // Get spatial data for velocity at different heights
   for (int n = 0; n < 2; ++n) {
 
-    modes_hosgrid::populate_hos_vel(rmodes, ht[n], mX, mY, mZ, plan_vector,
+    modes_hosgrid::populate_hos_vel(rmodes, ht[n], zsl, mX, mY, mZ, plan_vector,
                                     u_modes, v_modes, w_modes, u, v, w);
 
     // Transfer to host

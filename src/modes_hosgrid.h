@@ -60,7 +60,7 @@ void dimensionalize_eta(const double dimL,
                         amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta);
 
 template <typename VT>
-void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
+void populate_hos_vel(ReadModes<VT> rm_obj, const double z, const double zsl,
                       std::vector<VT> mX_vector, std::vector<VT> mY_vector,
                       std::vector<VT> mZ_vector,
                       std::vector<fftw_plan> p_vector, fftw_complex *x_modes,
@@ -71,7 +71,7 @@ void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
                       int indv_start = 0);
 
 template <typename VT>
-void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
+void populate_hos_vel(ReadModes<VT> rm_obj, const double z, const double zsl,
                       std::vector<VT> mX_vector, std::vector<VT> mY_vector,
                       std::vector<VT> mZ_vector, std::vector<VT> mAdd_vector,
                       std::vector<fftw_plan> p_vector, double *x_modes,
@@ -84,7 +84,7 @@ void populate_hos_vel(ReadModes<VT> rm_obj, const double z,
 
 void populate_hos_vel(const int n0, const int n1, const double xlen,
                       const double ylen, const double depth, const double z,
-                      const double dimL, const double dimT,
+                      const double zsl, const double dimL, const double dimT,
                       std::vector<std::complex<double>> mX_vector,
                       std::vector<std::complex<double>> mY_vector,
                       std::vector<std::complex<double>> mZ_vector,
@@ -110,12 +110,13 @@ void populate_hos_ocean_vel_nondim(const int n0, const int n1,
 
 void populate_hos_vel(
     const int n0, const int n1, const int n2, const double xlen,
-    const double ylen, const double z, const double dimL, const double dimT,
-    std::vector<double> mX_vector, std::vector<double> mY_vector,
-    std::vector<double> mZ_vector, std::vector<double> mAdd_vector,
-    std::vector<fftw_plan> p_vector, double *x_modes, double *y_modes,
-    double *z_modes, double *add_x_modes, double *add_y_modes,
-    double *add_z_modes, amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
+    const double ylen, const double z, const double zsl, const double dimL,
+    const double dimT, std::vector<double> mX_vector,
+    std::vector<double> mY_vector, std::vector<double> mZ_vector,
+    std::vector<double> mAdd_vector, std::vector<fftw_plan> p_vector,
+    double *x_modes, double *y_modes, double *z_modes, double *add_x_modes,
+    double *add_y_modes, double *add_z_modes,
+    amrex::Gpu::DeviceVector<amrex::Real> &HOS_u,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_v,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_w, const int indv_start = 0);
 

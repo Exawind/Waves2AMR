@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
     modes_hosgrid::populate_hos_vel(
-        n0, n1, xlen, ylen, depth, ht, dimL, dimT, mX, mY, mZ, plan_vector,
+        n0, n1, xlen, ylen, depth, ht, 0.0, dimL, dimT, mX, mY, mZ, plan_vector,
         u_modes, v_modes, w_modes, hos_u_vec, hos_v_vec, hos_w_vec, indv);
     indv += n0 * n1;
   }

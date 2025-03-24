@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     // Get sample height
     amrex::Real ht = hvec[indvec[iht]];
     // Sample velocity
-    modes_hosgrid::populate_hos_vel(n0, n1, n2, xlen, ylen, ht, dimL, dimT, mX,
+    modes_hosgrid::populate_hos_vel(n0, n1, n2, xlen, ylen, ht, 0.0, dimL, dimT, mX,
                                     mY, mZ, mAdd, plan_vector, u_modes, v_modes,
                                     w_modes, au_modes, av_modes, aw_modes,
                                     hos_u_vec, hos_v_vec, hos_w_vec, indv);
