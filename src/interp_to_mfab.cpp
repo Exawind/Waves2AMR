@@ -66,7 +66,7 @@ int interp_to_mfab::create_height_vector(amrex::Vector<amrex::Real> &hvec,
 
   // Cells below interface are spaced with geometric series
   amrex::Real dz = dz0;
-  z = -0.5 * dz;
+  z = z_wlev - 0.5 * dz;
   for (int k = n_above; k < n; ++k) {
     hvec[k] = z;
     // Add half of current cell size
@@ -617,8 +617,8 @@ void interp_to_mfab::interp_velocity_to_multifab3D(
     amrex::Array4<amrex::Real> varr = vfab.array(mfi);
     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
       // Location of cell
-      amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
-      amrex::Real yc = problo[1] + (j + 0.5) * dx[1];
+      amrex::Real xc = problo[0] + (i + 0.5) * dx[0] - spd_xlo;
+      amrex::Real yc = problo[1] + (j + 0.5) * dx[1] - spd_ylo;
       const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
       const amrex::Real spd_Lx = spd_nx * spd_dx;
       const amrex::Real spd_Ly = spd_ny * spd_dy;
@@ -765,8 +765,7 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
     amrex::Array4<amrex::Real> lsarr = lsfab.array(mfi);
     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
       // Location of cell
-      amrex::Real xc = problo[0] + (i + 0.5) * dx[0];
-      amrex::Real yc = problo[1] + (j + 0.5) * dx[1];
+      amrex::Real xc = problo[0] + (i + 0.5) * dx[0] - spd_xlo;
       const amrex::Real zc = problo[2] + (k + 0.5) * dx[2];
       const amrex::Real spd_Lx = spd_nx * spd_dx;
       if (is_periodic) {
@@ -779,7 +778,6 @@ void interp_to_mfab::interp_eta_to_levelset_multifab2D(
       int i0 = xc / spd_dx;
       int i1 = i0 + 1;
       amrex::Real x0 = spd_dx * i0, x1 = spd_dx * i1;
-      // Should there be an offset?
       // Get surrounding indices (go forward, go backward)
       while (i0 < spd_nx - 2 && x0 - spd_dx < xc) {
         ++i0;

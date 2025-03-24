@@ -230,7 +230,7 @@ void modes_hosgrid::dimensionalize_eta(
 
 void modes_hosgrid::populate_hos_vel(
     int n0, int n1, double xlen, double ylen, double depth, double z,
-    const double dimL, const double dimT,
+    const double zsl, const double dimL, const double dimT,
     std::vector<std::complex<double>> mX_vector,
     std::vector<std::complex<double>> mY_vector,
     std::vector<std::complex<double>> mZ_vector,
@@ -244,7 +244,7 @@ void modes_hosgrid::populate_hos_vel(
   const amrex::Real nd_xlen = xlen / dimL;
   const amrex::Real nd_ylen = ylen / dimL;
   const amrex::Real nd_depth = depth / dimL;
-  const amrex::Real nd_z = z / dimL;
+  const amrex::Real nd_z = (z - zsl) / dimL;
 
   // Assert that p_vector.size() == 1 !!
 
@@ -352,7 +352,7 @@ void modes_hosgrid::populate_hos_ocean_vel_nondim(
 }
 
 void modes_hosgrid::populate_hos_vel(
-    int n0, int n1, int n2, double xlen, double ylen, double z,
+    int n0, int n1, int n2, double xlen, double ylen, double z, double zsl,
     const double dimL, const double dimT, std::vector<double> mX_vector,
     std::vector<double> mY_vector, std::vector<double> mZ_vector,
     std::vector<double> mAdd_vector, std::vector<fftw_plan> p_vector,
@@ -365,7 +365,7 @@ void modes_hosgrid::populate_hos_vel(
   // Nondimensionalize lengths from AMR domain
   const amrex::Real nd_xlen = xlen / dimL;
   const amrex::Real nd_ylen = ylen / dimL;
-  const amrex::Real nd_z = z / dimL;
+  const amrex::Real nd_z = (z - zsl) / dimL;
 
   // Assert that p_vector.size() > 1 !!
 
