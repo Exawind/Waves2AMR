@@ -362,4 +362,32 @@ TEST_F(CombinedTest, ReadFFTDimRMObj) {
   fftw_destroy_plan(plan);
 }
 
+TEST_F(CombinedTest, RMObjConflict) {
+  std::string fname = "../tests/modes_HOS_SWENSE.dat";
+  // Read
+  ReadModes<std::complex<double>> rmodes(fname);
+  // Initialize and size output variables
+  int vsize = rmodes.get_vector_size();
+  std::vector<std::complex<double>> mFS(vsize, 0.0);
+
+  // Get dimensions
+  int n0 = rmodes.get_first_fft_dimension();
+  int n1 = rmodes.get_second_fft_dimension();
+
+  // Allocate complex pointers and get plan, but make vector too big
+  fftw_plan plan;
+  auto eta_modes = modes_hosgrid::allocate_plan_copy(n0, n1, plan, mFS);
+  std::vector<fftw_plan> plan_vector{};
+  plan_vector.push_back(plan);
+  plan_vector.push_back(plan);
+
+  // Set up output vectors
+  amrex::Gpu::DeviceVector<amrex::Real> eta(n0 * n1, 0.0);
+
+  // Get spatial data for eta
+  EXPECT_DEATH(
+      modes_hosgrid::populate_hos_eta(rmodes, plan_vector, eta_modes, eta);
+      , "");
+}
+
 } // namespace w2a_tests

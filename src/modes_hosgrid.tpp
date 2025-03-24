@@ -1,3 +1,5 @@
+#include <type_traits>
+
 // Uses ReadModes object directly instead of of separate variables
 template <typename VT>
 void modes_hosgrid::populate_hos_vel(
@@ -42,6 +44,17 @@ template <typename VT, typename PT>
 void modes_hosgrid::populate_hos_eta(
     ReadModes<VT> rm_obj, std::vector<fftw_plan> p_vector, PT *eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta) {
+
+  bool types_lengths_match =
+      (std::is_same_v<VT, double>) ? p_vector.size() > 1 : p_vector.size() == 1;
+  if (!types_lengths_match) {
+    std::cout << "ABORT: Waves2AMR modes_hosgrid::populate_hos_eta\n"
+              << "       templated type of ReadModes object does not match "
+                 "expected length of fftw plan vector.\n"
+              << "       HOS-Ocean and HOS-NWT pathways are likely being "
+                 "erroneously mixed.\n";
+    std::exit(1);
+  }
 
   // Pass parameters to function via object calls
   populate_hos_eta(rm_obj.get_first_fft_dimension(),
