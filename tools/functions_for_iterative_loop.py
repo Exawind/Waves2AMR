@@ -1,6 +1,24 @@
 import numpy as np
 import pandas as pd
 
+def waveNumber(g, omega, d):
+    k0 = 1
+    err = 1
+    count = 0
+    while (err >= 10e-8 and count <= 100):
+        f0 = omega*omega - g*k0*np.tanh(k0*d)
+        fp0 = -g*np.tanh(k0*d)-g*k0*d*(1-np.tanh(k0*d)*np.tanh(k0*d))
+        k1 = k0 - f0/fp0
+        err = abs(k1-k0)
+        k0 = k1
+        count += 1
+
+    if (count >= 100):
+        print('Can\'t find solution for dispersion equation!')
+        exit()
+    else:
+        return(k0)
+
 def read_elev(fname,time_skip,nheader,iprobe):
 
     """

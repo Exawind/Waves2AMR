@@ -57,9 +57,21 @@ elev_exp /= modelscale_length
 # Get target spectrum from experiment
 s_exp = convert_to_spectrum(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr)),0])
 
+# shift target spectrum
+g = 9.81 # magnitude of acceleration due to gravity
+d = 3.6 # water depth in meters
+x_shift = 16 # probe location in meters
+Freqs = np.fft.fftfreq(len(s_exp))
+# Calculate wave numbers
+waveNum = np.zeros(len(Freqs))
+for i in range(len(Freqs)):
+        om = 2*np.pi*Freqs[i]
+        waveNum[i] = waveNumber(g, om, d)
+
+s_exp_shifted = np.abs(s_exp)*np.exp(1j*(np.angle(s_exp) - (waveNum*x_shift)))
+
 # Initial guess
-# s_init_out has the closest spectrum to the experimental one
-s_in = s_init_out
+s_in = s_exp_shifted
 
 # Begin loop for 4-wave decomposition
 print("Begin loop for 4-wave decomposition, n_max = " + str(n_4waves_max))
