@@ -67,7 +67,8 @@ int interp_to_mfab::create_height_vector(amrex::Vector<amrex::Real> &hvec,
   // Cells below interface are spaced with geometric series
   amrex::Real dz = dz0;
   z = z_wlev - 0.5 * dz;
-  for (int k = n_above; k < n; ++k) {
+
+  for (int k = n_above; k < n - 1; ++k) {
     hvec[k] = z;
     // Add half of current cell size
     z -= 0.5 * dz;
@@ -75,6 +76,15 @@ int interp_to_mfab::create_height_vector(amrex::Vector<amrex::Real> &hvec,
     dz *= r;
     z -= 0.5 * dz;
   }
+  // Put last cell at bottom
+  hvec[n - 1] = z_btm;
+  // Adjust second-to-last cell in between
+  if (n - 3 >= 0) {
+    const amrex::Real dz_double = hvec[n - 3] - hvec[n - 1];
+    // Average length of previous dz with exact middle dz
+    hvec[n - 2] = hvec[n - 3] - 0.5 * (dz + 0.5 * dz_double);
+  }
+
 
   return flag;
 }

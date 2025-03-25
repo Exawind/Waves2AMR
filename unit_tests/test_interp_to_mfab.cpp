@@ -21,6 +21,25 @@ amrex::Real sum_multifab(amrex::MultiFab &mf, int icomp) {
   return f_sum;
 }
 
+amrex::Real error_sum_multifab(amrex::MultiFab &mf, amrex::Real problo_z,
+                               amrex::Real dz, int icomp) {
+  amrex::Real f_sum = 0.0;
+  f_sum += amrex::ReduceSum(
+      mf, 0,
+      [=] AMREX_GPU_HOST_DEVICE(
+          amrex::Box const &bx,
+          amrex::Array4<amrex::Real const> const &fab_arr) -> amrex::Real {
+        amrex::Real f_sum_fab = 0;
+        amrex::Loop(bx, [=, &f_sum_fab](int i, int j, int k) noexcept {
+          const amrex::Real z = problo_z + (k + 0.5) * dz;
+          f_sum_fab +=
+              std::abs(fab_arr(i, j, k, icomp) - (1.0 - z) * (1.0 - z));
+        });
+        return f_sum_fab;
+      });
+  return f_sum;
+}
+
 void initialize_eta(amrex::Gpu::DeviceVector<amrex::Real> &HOS_eta, int spd_nx,
                     int spd_ny) {
   // Get pointers to eta because it is on device
@@ -109,6 +128,8 @@ TEST_F(InterpToMFabTest, create_height_vector) {
   const int n = 17;
   const amrex::Real r = 1.005;
   const amrex::Real dz0 = 0.1;
+  const amrex::Real dzn_2 = dz0 * std::pow(r, n - 4);
+  const amrex::Real dzn_1 = dz0 * std::pow(r, n - 3);
   const amrex::Real dzn = dz0 * std::pow(r, n - 2);
   const amrex::Real l = dz0 * (1.0 - std::pow(r, n - 1)) / (1.0 - r);
 
@@ -120,7 +141,8 @@ TEST_F(InterpToMFabTest, create_height_vector) {
   // Check beginning and ending size
   EXPECT_NEAR(2.0 * hvec[0], dz0, 1e-10);
   EXPECT_NEAR(-2.0 * hvec[1], dz0, 1e-10);
-  EXPECT_NEAR(hvec[n - 1], -l + 0.5 * dzn, 1e-2);
+  EXPECT_NEAR(hvec[n - 3], -l + dzn + dzn_1 + 0.5 * dzn_2, 1e-2);
+  EXPECT_NEAR(hvec[n - 1], -l, 1e-2);
 
   // Check failure flags
   flag = interp_to_mfab::create_height_vector(hvec, 4, 0.5, 1.0, 0.0, -1.0);
@@ -134,6 +156,8 @@ TEST_F(InterpToMFabTest, create_height_vector_offset) {
   const int n = 17;
   const amrex::Real r = 1.005;
   const amrex::Real dz0 = 0.1;
+  const amrex::Real dzn_2 = dz0 * std::pow(r, n - 4);
+  const amrex::Real dzn_1 = dz0 * std::pow(r, n - 3);
   const amrex::Real dzn = dz0 * std::pow(r, n - 2);
   const amrex::Real l = dz0 * (1.0 - std::pow(r, n - 1)) / (1.0 - r);
 
@@ -146,7 +170,8 @@ TEST_F(InterpToMFabTest, create_height_vector_offset) {
   // Check beginning and ending size
   EXPECT_NEAR(2.0 * (hvec[0] - zsl), dz0, 1e-10);
   EXPECT_NEAR(-2.0 * (hvec[1] - zsl), dz0, 1e-10);
-  EXPECT_NEAR(hvec[n - 1], zsl - l + 0.5 * dzn, 1e-2);
+  EXPECT_NEAR(hvec[n - 3], zsl - l + dzn + dzn_1 + 0.5 * dzn_2, 1e-2);
+  EXPECT_NEAR(hvec[n - 1], zsl - l, 1e-2);
 }
 
 TEST_F(InterpToMFabTest, get_local_height_indices) {
@@ -657,6 +682,97 @@ TEST_F(InterpToMFabTest, interp_velocity_to_multifab_lateral_shift) {
   const amrex::Real error = error_velocity(mf, nz);
   EXPECT_NEAR(error, 0.0, 1e-8);
   //  Note: this checks variation in x, ensures i, j indices aren't mixed up
+}
+
+TEST_F(InterpToMFabTest, interp_to_multifab_vertical_accuracy) {
+  // Set up 2D dimensions
+  const int spd_nx = 2, spd_ny = 2;
+  const amrex::Real spd_dx = 0.1, spd_dy = 0.05;
+  // Set up heights
+  int nheights = 3;
+  amrex::Vector<amrex::Real> hvec, hvec_old;
+  // Bottom is -1.0, geometric series r is 1.1, bottom dz is 1/2
+  hvec_old.resize(nheights);
+  hvec_old[2] = -1.0 + 0.5 * 1. / 2.;
+  hvec_old[1] = hvec_old[2] + 0.5 * (1. / 2. + 1. / 2. / 1.1);
+  hvec_old[0] = hvec_old[1] + 0.5 * (1. / 2. / 1.1 + 1. / 2. / 1.1 / 1.1);
+  hvec.resize(nheights);
+  hvec[0] = hvec_old[0];
+  hvec[2] = -1.0;
+  const amrex::Real dz_double = hvec[0] - hvec[2];
+  const amrex::Real dz = 1. / 2. / 1.1;
+  // Average length of previous dz with exact middle dz
+  hvec[1] = hvec[0] - 0.5 * (dz + 0.5 * dz_double);
+
+  // Set up velocity data
+  int vsize = spd_nx * spd_ny * hvec.size();
+  int vsize_xy = spd_nx * spd_ny;
+  amrex::Vector<amrex::Real> u, u_old, v_dummy;
+  u.resize(vsize);
+  u_old.resize(vsize);
+  v_dummy.resize(vsize);
+  for (int n = 0; n < hvec.size(); ++n) {
+    // Use quadratic function to represent the heights
+    for (int ij = 0; ij < vsize_xy; ++ij) {
+      u_old[ij + n * vsize_xy] = (1.0 + hvec_old[n]) * (1.0 + hvec_old[n]);
+      u[ij + n * vsize_xy] = (1.0 + hvec[n]) * (1.0 + hvec[n]);
+      v_dummy[ij + n * vsize_xy] = 0.;
+    }
+  }
+
+  // Copy to device vectors, only one component matters
+  amrex::Gpu::DeviceVector<amrex::Real> uvec, uvec_old, vvec, wvec;
+  uvec.resize(vsize);
+  uvec_old.resize(vsize);
+  vvec.resize(vsize);
+  wvec.resize(vsize);
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, u.begin(), u.end(), &uvec[0]);
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, u_old.begin(), u_old.end(),
+                   &uvec_old[0]);
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, v_dummy.begin(), v_dummy.end(),
+                   &vvec[0]);
+  amrex::Gpu::copy(amrex::Gpu::hostToDevice, v_dummy.begin(), v_dummy.end(),
+                   &wvec[0]);
+
+  const int nz = 8;
+  amrex::BoxArray ba(amrex::Box(amrex::IntVect{0, 0, 0},
+                                amrex::IntVect{nz - 1, nz - 1, nz - 1}));
+  amrex::DistributionMapping dm{ba};
+  const int ncomp = 3;
+  const int nghost = 3;
+  amrex::MultiFab mf(ba, dm, ncomp, nghost);
+  amrex::Vector<amrex::MultiFab *> field_fabs{&mf};
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx_lev{0.125, 0.125, 0.125};
+  amrex::Vector<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>> dx{dx_lev};
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo_lev{0., 0., -1.};
+  amrex::Vector<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM>> problo{
+      problo_lev};
+  // Get indices
+  amrex::Vector<int> indvec, indvec_old;
+  int flag = interp_to_mfab::get_local_height_indices(indvec, hvec, field_fabs,
+                                                      problo, dx);
+  flag = interp_to_mfab::get_local_height_indices(indvec_old, hvec_old,
+                                                  field_fabs, problo, dx);
+  EXPECT_EQ(flag, 1);
+  // Perform interpolation with current approach for heights
+  const amrex::Real spd_xlo{0.0};
+  const amrex::Real spd_ylo{0.0};
+  const bool is_periodic{true};
+  interp_to_mfab::interp_velocity_to_field(
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec,
+      hvec, uvec, vvec, wvec, field_fabs, problo, dx);
+  // Calculate error sum
+  const amrex::Real mf_err_u =
+      error_sum_multifab(*field_fabs[0], problo[0][2], dx[0][2], 0);
+  // Perform interpolation with old approach for heights
+  interp_to_mfab::interp_velocity_to_field(
+      spd_nx, spd_ny, spd_dx, spd_dy, spd_xlo, spd_ylo, is_periodic, indvec_old,
+      hvec_old, uvec_old, vvec, wvec, field_fabs, problo, dx);
+  // Calculate error sum for old approach
+  const amrex::Real mf_err_u_old =
+      error_sum_multifab(*field_fabs[0], problo[0][2], dx[0][2], 0);
+  // Check that new approach is more accurate
+  EXPECT_LT(mf_err_u, mf_err_u_old);
 }
 
 TEST_F(InterpToMFabTest, linear_interp) {
