@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+# compute wavenumbers for the shift
 def waveNumber(g, omega, d):
     k0 = 1
     err = 1
@@ -124,7 +125,6 @@ def write_input_spectrum(s_input, i_shift, time):
 
     # compute phases
     phaselist = np.arctan2(np.imag(s),np.real(s))
-    phaselist *= np.sqrt(2*np.pi) # trying this based on some post processing analysis
 
     # creating wavemaker.dat file
     angle = 0.0
