@@ -102,14 +102,13 @@ while (n < n_4waves_max and err > tol):
         subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
 
         # Read in the probe file
-        if n==1:
-            t_probe, elev_probe = read_elev("Results/probes.dat", tskip, nheader_probfile, 1)
-        else:
-            t_probe, elev_probe = read_elev("Results/probes" + str(n-1) + ".dat", tskip, nheader_probfile, 1)
-
+        t_probe, elev_probe = read_elev("Results/probes.dat", tskip, nheader_probfile, 1)
+        
         # Rename probe and wavemaker files to avoid overwriting
-        subprocess.call("mv Results/probes.dat Results/probes" + str(n) + ".dat",shell=True)
-        subprocess.call("mv wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
+        subprocess.call("cp -r Results Results" + str(n),shell=True)
+        subprocess.call("rm -r Results",shell=True)
+        subprocess.call("cp wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
+        subprocess.call("rm wavemaker.dat",shell=True)
 
         # If phase shift = 0, compare time series to target
         if (i == 0):
@@ -154,14 +153,13 @@ while (n < n_1wave_max and err > tol):
     subprocess.run(exe + " case3_HOS-NWT.inp",shell=True)
 
     # Read in the probe file
-    if n==1:
-        t_probe, elev_probe = read_elev("Results/probes.dat", tskip, nheader_probfile, 1)
-    else:
-        t_probe, elev_probe = read_elev("Results/probes" + str(n-1) + ".dat", tskip, nheader_probfile, 1)
-
-    # Rename probe file and wavemaker file to avoid overwriting
-    subprocess.call("mv Results/probes.dat Results/probes" + str(n) + ".dat",shell=True)
-    subprocess.call("mv wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
+    t_probe, elev_probe = read_elev("Results/probes.dat", tskip, nheader_probfile, 1)
+        
+    # Rename probe and wavemaker files to avoid overwriting
+    subprocess.call("cp -r Results Results" + str(n),shell=True)
+    subprocess.call("rm -r Results",shell=True)
+    subprocess.call("cp wavemaker.dat wavemaker" + str(n) + ".dat",shell=True)
+    subprocess.call("rm wavemaker.dat",shell=True)
 
     # Compare time series
     wave_elev_norm = time_series_difference(t_exp[0:(len(t_init_irr))], elev_exp[0:(len(t_init_irr)),0], t_probe[0:(len(t_init_irr))], elev_probe[0:(len(t_init_irr)),0])
