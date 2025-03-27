@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy.ndimage import gaussian_filter1d
 
 # compute wavenumbers for the shift
 def waveNumber(g, omega, d):
@@ -147,6 +148,41 @@ def measure_convergence(s, s_old):
     spectrum_norm = np.max(np.abs(s-s_old))
 
     return spectrum_norm
+
+def measure_spectral_convergence(s_target,s,time_signal):
+
+    # define frequency arrays based on length of time signal
+    freqs = np.fft.fftfreq(len(time_signal))
+
+    # extract amplitudes of experimental spectrum
+    ampli_exp = np.abs(s_target)
+    ampli_exp = ampli_exp/len(time_signal)
+    ampli_exp = ampli_exp[0:len(ampli_exp)//2 + 1]
+    ampli_exp[1:] = 2*ampli_exp[1:]
+
+    # extract amplitudes of input spectrum
+    ampli_input_spectrum = np.abs(s)
+    ampli_input_spectrum = ampli_input_spectrum/len(time_signal)
+    ampli_input_spectrum = ampli_input_spectrum[0:len(ampli_input_spectrum)//2 + 1]
+    ampli_input_spectrum[1:] = 2*ampli_input_spectrum[1:]
+
+    # smooth data to reduce impact of peaks
+    ampli_input_spectrum_smoothed = gaussian_filter1d(ampli_input_spectrum, 1)
+
+    # get amplitudes and frequencies within relevant range
+    # experiment
+    frequency_range_exp = np.where(freqs[0:len(ampli_exp)]<=(0.006))
+    frequencies_exp = freqs[frequency_range_exp]
+    amplitudes_exp = ampli_exp[frequency_range_exp]
+    # simulations
+    frequency_range_input = np.where(freqs[0:len(ampli_input_spectrum)]<=(0.006))
+    frequencies_input = freqs[frequency_range_input]
+    amplitudes_input_smoothed = ampli_input_spectrum_smoothed[frequency_range_input]
+
+    # compute area under curves (normalized by maximum value found) and take difference between the two
+    Err = np.abs(np.trapezoid(amplitudes_exp/max(amplitudes_exp),frequencies_exp) - np.trapezoid(amplitudes_input_smoothed/max(amplitudes_input_smoothed),frequencies_input))
+    
+    return Err
 
 def generate_4wave_out_spectrum(s0, s1, s2, s3):
 
