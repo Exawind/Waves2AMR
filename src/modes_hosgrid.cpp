@@ -100,7 +100,6 @@ void modes_hosgrid::plan_ifftw_nwt(
         fftw_plan_r2r_1d(n1 - 2, in, &out[0], FFTW_RODFT00, flag));
     // None for SC, SS, Cy, Sy
   } else {
-    double out_y[n0];
     // CC
     plan_vector.emplace_back(fftw_plan_r2r_2d(n0, n1, in, &out[0], FFTW_REDFT00,
                                               FFTW_REDFT00, flag));

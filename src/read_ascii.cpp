@@ -283,7 +283,6 @@ template <> bool ReadModes<double>::ascii_read_full(const int itime) {
   // Read modes
   int idx = 0;
   int idx3 = 0;
-  double buf_r;
   for (int i2 = 0; i2 < n2; ++i2) {
 
     for (int i1 = i1_init; i1 < n1; ++i1) {
