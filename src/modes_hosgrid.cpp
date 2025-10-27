@@ -71,7 +71,7 @@ fftw_plan modes_hosgrid::plan_ifftw(
         std::exit(1);
     }
     // Output array is used for planning (except for FFTW_ESTIMATE)
-    double out[n0][n1];
+    double out[n0][n1]; // HERE
     // Make and return plan
     return fftw_plan_dft_c2r_2d(n0, n1, in, &out[0][0], flag);
 }
@@ -104,7 +104,7 @@ void modes_hosgrid::plan_ifftw_nwt(
         std::exit(1);
     }
     // Output array is used for planning (except for FFTW_ESTIMATE)
-    double out[n0 * n1];
+    double out[n0 * n1]; // HERE
     if (n0 == 1) {
         // CC
         plan_vector.emplace_back(
@@ -204,14 +204,13 @@ void modes_hosgrid::populate_hos_ocean_eta_nondim(
     amrex::Gpu::DeviceVector<amrex::Real>& HOS_eta)
 {
     // Local array for output data
-    double out[n0 * n1];
+    std::vector<double> out(n0 * n1);
     // Perform complex-to-real (inverse) FFT
-    do_ifftw(n0, n1, p, eta_modes, &out[0]);
+    do_ifftw(n0, n1, p, eta_modes, out.data());
 
     // Copy data to output vector
     amrex::Gpu::copy(
-        amrex::Gpu::hostToDevice, &out[0], &out[0] + HOS_eta.size(),
-        HOS_eta.begin());
+        amrex::Gpu::hostToDevice, out.begin(), out.end(), HOS_eta.begin());
 
     // !! -- This function MODIFIES the modes -- !! //
     //   .. they are not intended to be reused ..   //
@@ -243,16 +242,18 @@ void modes_hosgrid::populate_hos_nwt_eta_nondim(
     amrex::Gpu::DeviceVector<amrex::Real>& HOS_eta)
 {
     // Local array for output data
-    double out[n0 * n1];
-    double f_work[n0 * n1];
-    double sp_work[n0 * n1];
+    std::vector<double> out(n0 * n1);
+    std::vector<double> f_work(n0 * n1);
+    std::vector<double> sp_work(n0 * n1);
+
     // Perform complex-to-real (inverse) FFT (cos, cos)
-    do_ifftw(n0, n1, true, true, p_vector, eta_modes, &out[0], f_work, sp_work);
+    do_ifftw(
+        n0, n1, true, true, p_vector, eta_modes, out.data(), f_work.data(),
+        sp_work.data());
 
     // Copy data to output vector
     amrex::Gpu::copy(
-        amrex::Gpu::hostToDevice, &out[0], &out[0] + HOS_eta.size(),
-        HOS_eta.begin());
+        amrex::Gpu::hostToDevice, out.begin(), out.end(), HOS_eta.begin());
 
     // !! -- This function MODIFIES the modes -- !! //
     //   .. they are not intended to be reused ..   //
