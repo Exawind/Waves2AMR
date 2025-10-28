@@ -185,8 +185,7 @@ void modes_hosgrid::populate_hos_eta(
     fftw_complex* eta_modes,
     amrex::Gpu::DeviceVector<amrex::Real>& HOS_eta)
 {
-
-    // Assert p_vector.size() == 1 !!
+    AMREX_ALWAYS_ASSERT(p_vector.size() == 1);
 
     // Get nondimensional interface height (eta)
     populate_hos_ocean_eta_nondim(n0, n1, p_vector[0], eta_modes, HOS_eta);
@@ -224,7 +223,7 @@ void modes_hosgrid::populate_hos_eta(
     amrex::Gpu::DeviceVector<amrex::Real>& HOS_eta)
 {
 
-    // Assert p_vector.size() > 1 !!
+    AMREX_ALWAYS_ASSERT(p_vector.size() > 1);
 
     // Get nondimensional interface height (eta)
     populate_hos_nwt_eta_nondim(n0, n1, p_vector, eta_modes, HOS_eta);
@@ -299,7 +298,7 @@ void modes_hosgrid::populate_hos_vel(
     const amrex::Real nd_depth = depth / dimL;
     const amrex::Real nd_z = (z - zsl) / dimL;
 
-    // Assert that p_vector.size() == 1 !!
+    AMREX_ALWAYS_ASSERT(p_vector.size() == 1);
 
     // Get nondimensional velocities
     populate_hos_ocean_vel_nondim(
@@ -447,7 +446,7 @@ void modes_hosgrid::populate_hos_vel(
     const amrex::Real nd_ylen = ylen / dimL;
     const amrex::Real nd_z = (z - zsl) / dimL;
 
-    // Assert that p_vector.size() > 1 !!
+    AMREX_ALWAYS_ASSERT(p_vector.size() > 1);
 
     // Output vectors
     const int xy_size = n0 * n1;
