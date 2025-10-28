@@ -134,36 +134,6 @@ void modes_hosgrid::plan_ifftw_nwt(
     }
 }
 
-// fftw_complex* modes_hosgrid::allocate_plan_copy(
-//     const int n0,
-//     const int n1,
-//     fftw_plan& p,
-//     std::vector<std::complex<double>> complex_vector)
-// {
-//     // Allocate and get pointer
-//     auto a_ptr = allocate_complex(n0, n1);
-//     // Create plan before data is initialized
-//     p = plan_ifftw(n0, n1, a_ptr);
-//     // Copy mode data from input vector
-//     copy_complex(n0, n1, complex_vector, a_ptr);
-//     // Return pointer to fftw_complex data
-//     return a_ptr;
-// }
-
-// double* modes_hosgrid::allocate_plan_copy(
-//     const int n0,
-//     const int n1,
-//     std::vector<fftw_plan>& p_vector,
-//     std::vector<double> real_vector)
-// {
-//     // n0 is outer dimension, n1 is inner dimension
-//     // assuming data comes from fortran, that means n0 is y, n1 is x
-//     auto a_ptr = allocate_real(n0, n1);
-//     plan_ifftw_nwt(n0, n1, p_vector, a_ptr);
-//     copy_real(n0, n1, real_vector, a_ptr);
-//     return a_ptr;
-// }
-
 fftw_complex* modes_hosgrid::allocate_copy(
     const int n0,
     const int n1,

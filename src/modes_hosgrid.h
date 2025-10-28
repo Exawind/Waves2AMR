@@ -26,18 +26,6 @@ fftw_plan plan_ifftw(
     double* out,
     const planner_flags wisdom);
 
-// fftw_complex* allocate_plan_copy(
-//     const int n0,
-//     const int n1,
-//     fftw_plan& p,
-//     std::vector<std::complex<double>> complex_vector);
-
-// double* allocate_plan_copy(
-//     const int n0,
-//     const int n1,
-//     std::vector<fftw_plan>& p_vector,
-//     std::vector<double> real_vector);
-
 fftw_complex* allocate_copy(
     const int n0,
     const int n1,
