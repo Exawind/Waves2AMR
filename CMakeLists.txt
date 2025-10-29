@@ -33,7 +33,7 @@ add_library(waves_2_amr OBJECT)
 target_link_libraries(waves_2_amr PUBLIC AMReX::amrex)
 
 find_package(FFTW REQUIRED)
-target_link_libraries_system(waves_2_amr PUBLIC FFTW::FFTW)
+target_link_libraries(waves_2_amr PUBLIC FFTW::FFTW)
 
 add_subdirectory(src)
 add_subdirectory(include)
