@@ -6,6 +6,8 @@ project( Waves2AMR
 
 message(STATUS "CMake version: ${CMAKE_VERSION}")
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 #
 # Check if CMAKE_BUILD_TYPE is given. If not, use default
 #
@@ -52,10 +54,6 @@ if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
    include(AMReXTargetHelpers)
 endif ()
 
-# FFTW library is required
-include_directories(${FFTW_DIR}/include/)
-set(fftw_lib ${FFTW_DIR}/lib/libfftw3.a)
-
 #
 # Define the object library to compile
 #
@@ -65,7 +63,10 @@ if (BUILD_SHARED_LIBS)
 endif()
 # Link required libraries
 target_link_libraries(waves_2_amr PUBLIC AMReX::amrex)
-target_link_libraries(waves_2_amr PRIVATE ${fftw_lib})
+
+find_package(FFTW REQUIRED)
+target_link_libraries_system(waves_2_amr PUBLIC FFTW::FFTW)
+
 add_subdirectory(src)
 add_subdirectory(include)
 
