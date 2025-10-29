@@ -14,9 +14,7 @@ find_path(
   FFTW_INCLUDE_DIR
   NAMES fftw3.h
   PATHS
-    ${FFTW_ROOT}
-    /usr/include
-    /usr/local/include
+    ${FFTW_DIR}
 )
 
 # Look for library (shared or static)
@@ -24,10 +22,7 @@ find_library(
   FFTW_LIBRARY
   NAMES fftw3 libfftw3
   PATHS
-    ${FFTW_ROOT}
-    /usr/lib
-    /usr/local/lib
-    /usr/lib/x86_64-linux-gnu
+    ${FFTW_DIR}
 )
 
 include(FindPackageHandleStandardArgs)
