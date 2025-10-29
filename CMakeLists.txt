@@ -48,6 +48,7 @@ include(GNUInstallDirs)
 add_library(waves_2_amr_api)
 target_link_libraries(waves_2_amr_api PUBLIC waves_2_amr)
 add_library(${PROJECT_NAME}::waves_2_amr_api ALIAS waves_2_amr)
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS waves_2_amr)
 
 get_target_property(WAVES2AMR_INCLUDES waves_2_amr SOURCES)
 list(FILTER WAVES2AMR_INCLUDES INCLUDE REGEX "\\.h")
