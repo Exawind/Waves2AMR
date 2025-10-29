@@ -1,28 +1,9 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
-project( Waves2AMR
-    LANGUAGES C CXX
-    )
-
-message(STATUS "CMake version: ${CMAKE_VERSION}")
+project(Waves2AMR LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-#
-# Check if CMAKE_BUILD_TYPE is given. If not, use default
-#
-if ( NOT CMAKE_BUILD_TYPE )
-   set(CMAKE_CONFIGURATION_TYPES "Release;Debug;MinSizeRel;RelWithDebInfo")
-   set(CMAKE_BUILD_TYPE Release
-       CACHE STRING
-       "Choose the build type, e.g. Release, Debug, or RelWithDebInfo." FORCE)
-else ()
-   message(STATUS "Build type set by user to '${CMAKE_BUILD_TYPE}'.")
-endif()
-
-#
-# Options
-#
 option(WAVES2AMR_ENABLE_MPI "Enable MPI" OFF)
 
 set(WAVES2AMR_GPU_BACKEND_VALUES NONE SYCL CUDA HIP)
@@ -33,9 +14,6 @@ if (NOT WAVES2AMR_GPU_BACKEND IN_LIST WAVES2AMR_GPU_BACKEND_VALUES)
       " Must be one of ${WAVES2AMR_GPU_BACKEND_VALUES}")
 endif ()
 
-#
-# Find AMReX, check for required components
-#
 if (NOT TARGET AMReX::amrex)
    set(AMREX_REQUIRED_COMPONENTS 3D DOUBLE)
    if (WAVES2AMR_ENABLE_MPI)
@@ -47,21 +25,11 @@ if (NOT TARGET AMReX::amrex)
    find_package(AMReX CONFIG REQUIRED ${AMREX_REQUIRED_COMPONENTS} )
 endif ()
 
-#
-# Enable CUDA if requested
-#
 if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
    include(AMReXTargetHelpers)
 endif ()
 
-#
-# Define the object library to compile
-#
 add_library(waves_2_amr OBJECT)
-if (BUILD_SHARED_LIBS)
-  set_target_properties(waves_2_amr PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
-# Link required libraries
 target_link_libraries(waves_2_amr PUBLIC AMReX::amrex)
 
 find_package(FFTW REQUIRED)
@@ -74,30 +42,18 @@ if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
    setup_target_for_cuda_compilation(waves_2_amr)
 endif ()
 
-if ( NOT CMAKE_CXX_FLAGS )
-   target_link_libraries(waves_2_amr PUBLIC AMReX::Flags_CXX)
-endif ()
-
-
-# Installation rules
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-# Create non-object library for use as external target
 add_library(waves_2_amr_api)
-if (BUILD_SHARED_LIBS)
-  set_target_properties(waves_2_amr_api PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
 target_link_libraries(waves_2_amr_api PUBLIC waves_2_amr)
 add_library(${PROJECT_NAME}::waves_2_amr_api ALIAS waves_2_amr)
 
-# Collect all headers and make them installable with the target
 get_target_property(WAVES2AMR_INCLUDES waves_2_amr SOURCES)
 list(FILTER WAVES2AMR_INCLUDES INCLUDE REGEX "\\.h")
 set_target_properties(
   waves_2_amr PROPERTIES PUBLIC_HEADER "${WAVES2AMR_INCLUDES}")
 
-# Install Waves2AMR
 install(
   TARGETS waves_2_amr_api waves_2_amr
   EXPORT ${PROJECT_NAME}Targets
@@ -108,7 +64,6 @@ install(
   PUBLIC_HEADER DESTINATION include
   )
 
-# Make Waves2AMR discoverable using `find_package`
 install(
   EXPORT ${PROJECT_NAME}Targets
   NAMESPACE ${PROJECT_NAME}::
