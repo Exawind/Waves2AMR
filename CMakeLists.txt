@@ -30,6 +30,9 @@ if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
 endif ()
 
 add_library(waves_2_amr OBJECT)
+if (BUILD_SHARED_LIBS)
+  set_target_properties(waves_2_amr PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 target_link_libraries(waves_2_amr PUBLIC AMReX::amrex)
 
 find_package(FFTW REQUIRED)
