@@ -29,52 +29,45 @@ if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
    include(AMReXTargetHelpers)
 endif ()
 
-add_library(waves_2_amr OBJECT)
-if (BUILD_SHARED_LIBS)
-  set_target_properties(waves_2_amr PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
-target_link_libraries(waves_2_amr PUBLIC AMReX::amrex)
+add_library(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(${PROJECT_NAME} PUBLIC AMReX::amrex)
 
 find_package(FFTW REQUIRED)
-target_link_libraries(waves_2_amr PUBLIC FFTW::FFTW)
+target_link_libraries(${PROJECT_NAME} PUBLIC FFTW::FFTW)
 
 add_subdirectory(src)
 add_subdirectory(include)
 
 if (WAVES2AMR_GPU_BACKEND STREQUAL "CUDA")
-   setup_target_for_cuda_compilation(waves_2_amr)
+   setup_target_for_cuda_compilation(${PROJECT_NAME})
 endif ()
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-add_library(waves_2_amr_api)
-target_link_libraries(waves_2_amr_api PUBLIC waves_2_amr)
-add_library(${PROJECT_NAME}::waves_2_amr_api ALIAS waves_2_amr)
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS waves_2_amr)
-
-get_target_property(WAVES2AMR_INCLUDES waves_2_amr SOURCES)
+get_target_property(WAVES2AMR_INCLUDES ${PROJECT_NAME} SOURCES)
 list(FILTER WAVES2AMR_INCLUDES INCLUDE REGEX "\\.h")
 set_target_properties(
-  waves_2_amr PROPERTIES PUBLIC_HEADER "${WAVES2AMR_INCLUDES}")
+  ${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${WAVES2AMR_INCLUDES}")
 
-install(
-  TARGETS waves_2_amr_api waves_2_amr
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
-  RUNTIME       DESTINATION bin
-  ARCHIVE       DESTINATION lib
-  LIBRARY       DESTINATION lib
-  INCLUDES      DESTINATION include
-  PUBLIC_HEADER DESTINATION include
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
-
 install(
   EXPORT ${PROJECT_NAME}Targets
   NAMESPACE ${PROJECT_NAME}::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
   )
 configure_package_config_file(
-  ${PROJECT_NAME}Config.cmake.in
+  ${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
   )
@@ -82,3 +75,6 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
   )
+install(FILES
+  ${PROJECT_SOURCE_DIR}/cmake/FindFFTW.cmake
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/Modules)
