@@ -1,11 +1,11 @@
 target_include_directories(
-   waves_2_amr
+   ${PROJECT_NAME}
    PUBLIC
    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
    )
 
 target_sources(
-   waves_2_amr
+   ${PROJECT_NAME}
    PRIVATE
    read_modes.h
    read_modes.cpp
